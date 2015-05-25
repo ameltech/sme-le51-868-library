@@ -1,0 +1,1 @@
+This is a library for SmartEverything LE51-868 SIGFOX module.
