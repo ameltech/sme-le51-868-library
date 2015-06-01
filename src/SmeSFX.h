@@ -11,6 +11,8 @@
 
 #include <stdint-gcc.h>
 #include <Arduino.h>
+
+#include "sigFox/smeSFXModel.h"
 #include "smeCommon/smeComponent.h"
 #include "smeCommon/smeErrorCode.h"
 

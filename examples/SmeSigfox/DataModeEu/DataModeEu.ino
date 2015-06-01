@@ -6,7 +6,12 @@
     as per US Standard.
 
     The Library sends an "Hello" String over the SigFox network.
+
+	The RGB Green Led ligth on when the Telit sends the message on the air, 
+		ligth off at the positive answer from the component. 
     
+
+
     created 05 May 2015
     by Mik (smkk@amel-tech.com)
 
@@ -20,8 +25,8 @@
 #include <Arduino.h>
 
 
-bool inConfiguration;
-char debug[5]= {'H','e', 'l', 'l', 'o'};
+
+char helloMsg[5]= {'H','e', 'l', 'l', 'o'};
 bool messageSent;
 
 // the setup function runs once when you press reset or power the board
@@ -30,9 +35,8 @@ void setup() {
     pinMode(13, OUTPUT);
     digitalWrite(PIN_LED_13, LOW);
     
-    inConfiguration = false;
     SerialUSB.begin(115200);
-    sfxAntenna.begin();// enter in data Mode
+    sfxAntenna.begin();
     int initFinish=1;
 
     SerialUSB.println("SFX in Command mode");
@@ -58,7 +62,7 @@ void setup() {
 
     SerialUSB.println("sending Hello over the network");
     // send Hello on the air
-    sfxAntenna.sfxSendData(debug, strlen((char*)debug));
+    sfxAntenna.sfxSendData(helloMsg, strlen((char*)helloMsg));
 }
 
 // the loop function runs over and over again forever
@@ -89,8 +93,6 @@ void loop() {
                 SerialUSB.println("Answer KO :( :( :( :(");
                 break;
             }
-
-
         }
     }
 }
