@@ -1,0 +1,101 @@
+/*
+    SmeIoT Library - Sendconfiguration
+
+    Demostrate how move in configuration mode for the Telit Sigfox component.
+    Any command passed trougth the USB console are forwarded to the SigFox Component.
+
+    The Led13 shows the command status
+    ON : command sent
+    OFF: OK Answer received
+
+    created 27 Apr 2015
+    by Mik (smkk@amel-tech.com)
+
+    This example is in the public domain
+
+    http://www.amel-tech.com/smarteverything/tutorial/IoT/SigFox
+ */
+
+#include <Wire.h>
+#include <SmeSFX.h>
+#include <Arduino.h>
+
+
+bool inConfiguration;
+
+// max length of message consider the register name + register Value + the symbol for write/read command
+#define MAX_SFX_MESSAGE_LEN SIG_FOX_MAX_REGISTER_LEN+SIG_FOX_MAX_REG_VALUE_LEN+sizeof(SIGFOX_EQUAL_CHAR)
+char sfcCommandMsg[MAX_SFX_MESSAGE_LEN];
+char msgPtr;
+#define COMMAND_END '.'
+
+/*
+Collect all the incoming data to the command message will be forwarded to SFX
+Consider the '.' as the termination command from the console
+ */
+void composeSendSFXCommand(void){
+
+    while(SerialUSB.available()) {        
+        if (msgPtr>MAX_SFX_MESSAGE_LEN) {
+            SerialUSB.println("Command msg too big, not sent to the SFX antenna");
+            msgPtr=0;
+            return;
+        }
+
+        char data = (char)SerialUSB.read();
+        //echoes the data
+        SerialUSB.print(data);
+
+        if (COMMAND_END != data) {
+            sfcCommandMsg[msgPtr++] = data;
+        }else  {
+            digitalWrite(PIN_LED_13, LOW);
+            sfxAntenna.sfxSendConf(sfcCommandMsg, msgPtr); // send the data
+            msgPtr=0;
+        }
+    }
+}
+
+
+
+// the setup function runs once when you press reset or power the board
+void setup() {
+    // initialize digital pin 13 as an output.
+    pinMode(PIN_LED_13, OUTPUT);
+    digitalWrite(PIN_LED_13, LOW);
+    inConfiguration = false;
+
+    SerialUSB.begin(115200);
+    sfxAntenna.begin();
+
+    digitalWrite(PIN_LED_13, HIGH);
+    sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
+}
+
+// the loop function runs over and over again forever
+void loop() {
+
+    if (!inConfiguration) {
+        uint8_t answerReady = sfxAntenna.hasSfxAnswer();
+        if (answerReady){
+            digitalWrite(PIN_LED_13, LOW);
+            SerialUSB.println("SFX in Command mode");
+            inConfiguration = true;
+            msgPtr=0;
+        }
+    } else {
+        // forward any command received by the USB port to the SFX chip
+        if (SerialUSB.available()) {
+            digitalWrite(PIN_LED_13, HIGH);
+            composeSendSFXCommand();
+        }
+
+        // if message has been received corectly print it out
+        if (sfxAntenna.hasSfxAnswer()) {
+            if (sfxAntenna.getSfxError() == SME_SFX_OK) {
+                SerialUSB.println("Command accepted !!");
+                SerialUSB.println((const char*)sfxAntenna.getLastReceivedMessage());               
+            }
+        }
+    }
+}
