@@ -1,0 +1,36 @@
+#######################################
+# Syntax Coloring Map Servo
+#######################################
+
+#######################################
+# Library (KEYWORD3)
+#######################################
+sfxAntenna	            KEYWORD3
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+sigFoxModeE	 KEYWORD1
+
+
+#######################################
+# Methods and Functions smeNfc (KEYWORD2)
+#######################################
+setSfxConfigurationMode	        KEYWORD2
+readSerialNumber	      KEYWORD2
+getLastReceivedMessage	   KEYWORD2
+getSfxError	   KEYWORD2
+setSfxDataMode	   KEYWORD2
+sfxSendData	   KEYWORD2
+sfxSendConf	   KEYWORD2
+sfxSendKeep	   KEYWORD2
+hasSfxAnswer	   KEYWORD2
+getSfxMode	   KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+sfxConfigurationMode	 LITERAL1
+sfxEnterDataMode	     LITERAL1
+sfxDataMode	         LITERAL1
