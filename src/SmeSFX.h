@@ -99,8 +99,8 @@ private:
     sigFoxModeE     sfxMode;
     char            message[SFX_MAX_PAYLOAD+7]; // the max payload plus header,tailer CRC and other bytes
     sigFoxRxMessage answer;                     //structure used to received message/configuration
-    byte         sfxError;                   // internal error code 
-    sfxRxFSME       recFsm=headerRec;           // Finite State machine for the parsing of the data answer    
+    byte         sfxError;                      // internal error code 
+    sfxRxFSME    recFsm;					    // Finite State machine for the parsing of the data answer    
     byte         answerCrcCounter;
     byte         dataAck;
 
@@ -173,7 +173,7 @@ public:
      * \param [in] <payloadLen> {the length in bytes of the user data}
      *
      */
-    byte sfxSendConf(const char confMsg[], byte confLen);
+    void sfxSendConf(const char confMsg[], byte confLen);
     
     /*
      * \brief used to send the KEEP message

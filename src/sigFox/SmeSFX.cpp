@@ -18,6 +18,7 @@
 SmeSFX::SmeSFX(void):smeComponent("SmeSFX") {
     sfxSequenceNumber = 0x25;
     sfxMode = sfxDataMode;
+	recFsm	= headerRec;
 }
 
 void SmeSFX::begin (void){
@@ -39,8 +40,9 @@ void SmeSFX::setSfxDataMode(void) {
 
 bool SmeSFX::hasSfxAnswer(void) {
     if (readSfxAnswer()) {
-        return (SME_SFX_OK==getSfxError())   ;
+        return (SME_SFX_OK==getSfxError());
     }
+	return false;
 }
 
 
@@ -62,13 +64,15 @@ const byte SmeSFX::readSfxAnswer(void)
             break;
 
         default:
+			return false;
             break;
         }
     }
+	return false;
 }
 
 
-byte  SmeSFX::sfxSendConf(const char confMsg[], byte confLen) {
+void  SmeSFX::sfxSendConf(const char confMsg[], byte confLen) {
     memset(message, 0 , sizeof(message)); //clear old message
     memcpy(message, confMsg, confLen);
     message[confLen]= SIGFOX_END_MESSAGE;
@@ -112,6 +116,8 @@ byte  SmeSFX::sfxSendData(const char payload[], byte payloadLen) {
     memset(answer.payload, 0 , sizeof(answer.payload));
     
     SigFox.print((const char*)message);
+	
+	return 1; // just return true in first library releae 
 }
 
 
@@ -304,10 +310,9 @@ byte  SmeSFX::composeSfxConfigurationAnswer(char data){
 }
 
 char  SmeSFX::readSerialNumber(char serialNum[]) {
-	sigFoxModeE enterSfxMode= sfxDataMode;
 	setSfxConfigurationMode();
 	
-	return NULL;
+	return 0;
 }
 
 SmeSFX  sfxAntenna;
