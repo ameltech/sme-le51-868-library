@@ -14,8 +14,10 @@
     by Mik (smkk@amel-tech.com)
 
     This example is in the public domain
-
-    http://www.amel-tech.com/smarteverything/tutorial/IoT/SigFox
+    https://github.com/ameltech
+    
+    Telit le51-868-s mor einformatioin available here:
+    http://www.telit.com/products/product-service-selector/product-service-selector/show/product/le51-868-s/
  */
 
 #include <Wire.h>
