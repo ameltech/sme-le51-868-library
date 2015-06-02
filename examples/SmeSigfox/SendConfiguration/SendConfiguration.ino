@@ -3,6 +3,8 @@
 
     Demostrate how move in configuration mode for the Telit Sigfox component.
     Any command passed trougth the USB console are forwarded to the SigFox Component.
+	
+	The command should finish with the '.' character.
 
     The Led13 shows the command status
     ON : command sent
