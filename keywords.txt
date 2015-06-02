@@ -22,6 +22,7 @@ getLastReceivedMessage	   KEYWORD2
 getSfxError	   KEYWORD2
 setSfxDataMode	   KEYWORD2
 sfxSendData	   KEYWORD2
+sfxDataAcknoledge	   KEYWORD2
 sfxSendConf	   KEYWORD2
 sfxSendKeep	   KEYWORD2
 hasSfxAnswer	   KEYWORD2
