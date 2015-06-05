@@ -34,8 +34,8 @@ char msgPtr;
 #define COMMAND_END '.'
 
 /*
-Collect all the incoming data to the command message will be forwarded to SFX
-Consider the '.' as the termination command from the console
+Co All the incoming data to the command message will be forwarded to SFX
+ * Consider the '.' as the termination command from the console
  */
 void composeSendSFXCommand(void){
 
@@ -53,7 +53,7 @@ void composeSendSFXCommand(void){
         if (COMMAND_END != data) {
             sfcCommandMsg[msgPtr++] = data;
         }else  {
-            digitalWrite(PIN_LED_13, LOW);
+            digitalWrite(PIN_LED_GREEN, LOW);
             sfxAntenna.sfxSendConf(sfcCommandMsg, msgPtr); // send the data
             msgPtr=0;
         }
@@ -64,15 +64,15 @@ void composeSendSFXCommand(void){
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // initialize digital pin 13 as an output.
-    pinMode(PIN_LED_13, OUTPUT);
-    digitalWrite(PIN_LED_13, LOW);
+    // initialize digital pin PIN_LED_GREEN as an output.
+    pinMode(PIN_LED_GREEN, OUTPUT);
+    digitalWrite(PIN_LED_GREEN, LOW);
     inConfiguration = false;
 
     SerialUSB.begin(115200);
     sfxAntenna.begin();
 
-    digitalWrite(PIN_LED_13, HIGH);
+    digitalWrite(PIN_LED_GREEN, HIGH);
     sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
 }
 
@@ -82,7 +82,7 @@ void loop() {
     if (!inConfiguration) {
         uint8_t answerReady = sfxAntenna.hasSfxAnswer();
         if (answerReady){
-            digitalWrite(PIN_LED_13, LOW);
+            digitalWrite(PIN_LED_GREEN, LOW);
             SerialUSB.println("SFX in Command mode");
             inConfiguration = true;
             msgPtr=0;
@@ -90,7 +90,7 @@ void loop() {
     } else {
         // forward any command received by the USB port to the SFX chip
         if (SerialUSB.available()) {
-            digitalWrite(PIN_LED_13, HIGH);
+            digitalWrite(PIN_LED_GREEN, HIGH);
             composeSendSFXCommand();
         }
 

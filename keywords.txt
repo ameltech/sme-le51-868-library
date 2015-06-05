@@ -1,5 +1,5 @@
 #######################################
-# Syntax Coloring Map Servo
+# Syntax Coloring Map SigFox communication network
 #######################################
 
 #######################################
@@ -14,7 +14,7 @@ sigFoxModeE	 KEYWORD1
 
 
 #######################################
-# Methods and Functions smeNfc (KEYWORD2)
+# Methods and Functions (KEYWORD2)
 #######################################
 setSfxConfigurationMode	        KEYWORD2
 readSerialNumber	      KEYWORD2

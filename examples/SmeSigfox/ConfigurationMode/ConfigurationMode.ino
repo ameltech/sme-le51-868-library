@@ -24,7 +24,7 @@ bool inConfiguration;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // initialize digital pin 13 as an output.
+    // initialize digital pin PIN_LED_GREEN as an output.
     pinMode(PIN_LED_GREEN, OUTPUT);
     digitalWrite(PIN_LED_GREEN, HIGH);
     inConfiguration = false;

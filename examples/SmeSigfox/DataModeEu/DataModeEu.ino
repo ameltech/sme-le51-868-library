@@ -2,8 +2,6 @@
     SmeIoT Library - DataModeUs
 
     Demostrate how move in data mode for the Telit Sigfox component.
-    Before send the message on the air the Example set the frequency to 902.8MHz
-    as per US Standard.
 
     The Library sends an "Hello" String over the SigFox network.
 
@@ -32,9 +30,9 @@ bool messageSent;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // initialize digital pin 13 as an output.
-    pinMode(13, OUTPUT);
-    digitalWrite(PIN_LED_13, LOW);
+    // initialize digital pin PIN_LED_GREEN as an output.
+    pinMode(PIN_LED_GREEN, OUTPUT);
+    digitalWrite(PIN_LED_GREEN, HIGH);
     
     SerialUSB.begin(115200);
     sfxAntenna.begin();
@@ -54,7 +52,6 @@ void setup() {
                 break;
 
             case 2:
-                digitalWrite(PIN_LED_13, HIGH);
                 initFinish++; // exit
                 break;
             }
@@ -84,7 +81,7 @@ void loop() {
                 break;
 
             case SFX_DATA_ACK_OK:
-                digitalWrite(PIN_LED_13, LOW);
+                digitalWrite(PIN_LED_GREEN, LOW);
                 SerialUSB.println(' ');
                 SerialUSB.println("Answer OK :) :) :) :)");
                 break;

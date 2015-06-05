@@ -32,9 +32,9 @@ char helloMsg[5]= {'H','e', 'l', 'l', 'o'};
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // initialize digital pin 13 as an output.
-    pinMode(13, OUTPUT);
-    digitalWrite(PIN_LED_13, HIGH);
+    // initialize digital pin PIN_LED_GREEN as an output.
+    pinMode(PIN_LED_GREEN, OUTPUT);
+    digitalWrite(PIN_LED_GREEN, HIGH);
     SerialUSB.begin(115200);
     sfxAntenna.begin();
     int initFinish=1;
@@ -59,7 +59,7 @@ void setup() {
                 break;
 
             case 3:
-                digitalWrite(PIN_LED_13, HIGH);
+                digitalWrite(PIN_LED_GREEN, HIGH);
                 initFinish++; // exit
                 break;
             }
@@ -89,7 +89,7 @@ void loop() {
                 break;
 
             case SFX_DATA_ACK_OK:
-                digitalWrite(PIN_LED_13, LOW);
+                digitalWrite(PIN_LED_GREEN, LOW);
                 SerialUSB.println(' ');
                 SerialUSB.println("Answer OK :) :) :) :)");
                 break;
