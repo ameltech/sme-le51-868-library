@@ -13,8 +13,7 @@
 #include <Arduino.h>
 
 #include "sigFox/smeSFXModel.h"
-#include "smeCommon/smeComponent.h"
-#include "smeCommon/smeErrorCode.h"
+#include "sigFox/smeErrorCode.h"
 
 
 /*
@@ -88,7 +87,7 @@ typedef struct {
 }sigFoxRxMessage;
 
 
-class SmeSFX: public smeComponent/*smeUartComponent*/ {
+class SmeSFX{
 public:
     SmeSFX(void);
     virtual ~SmeSFX(){};

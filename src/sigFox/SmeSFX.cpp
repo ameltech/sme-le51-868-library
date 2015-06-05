@@ -8,14 +8,14 @@
 #include <Arduino.h>
 #include "../SmeSFX.h"
 #include "smeSFXModel.h"
-#include "../smeCommon/smeErrorCode.h"
+#include "smeErrorCode.h"
 
 // fixed position on the sequence number array, used by the answer FSM to check the consistence
 // between the sent message and the received one.
 #define DATA_SEQUENCE_NUMBER 0
 #define KEEP_SEQUENCE_NUMBER 1
 
-SmeSFX::SmeSFX(void):smeComponent("SmeSFX") {
+SmeSFX::SmeSFX(void) {
     sfxSequenceNumber = 0x25;
     sfxMode = sfxDataMode;
 	recFsm	= headerRec;
