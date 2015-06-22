@@ -1,5 +1,5 @@
 /*
-    SmeIoT Library - DataModeUs
+    SmeIoT Library - DataModeEu
 
     Demostrate how move in data mode for the Telit Sigfox component.
 
@@ -30,9 +30,6 @@ bool messageSent;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // initialize digital pin PIN_LED_GREEN as an output.
-    pinMode(PIN_LED_GREEN, OUTPUT);
-    digitalWrite(PIN_LED_GREEN, HIGH);
     
     SerialUSB.begin(115200);
     sfxAntenna.begin();
@@ -81,12 +78,13 @@ void loop() {
                 break;
 
             case SFX_DATA_ACK_OK:
-                digitalWrite(PIN_LED_GREEN, LOW);
+                ledGreenLight(HIGH);
                 SerialUSB.println(' ');
                 SerialUSB.println("Answer OK :) :) :) :)");
                 break;
 
             case SFX_DATA_ACK_KO:
+                ledRedLight(HIGH);
                 SerialUSB.println(' ');
                 SerialUSB.println("Answer KO :( :( :( :(");
                 break;
@@ -94,4 +92,3 @@ void loop() {
         }
     }
 }
-

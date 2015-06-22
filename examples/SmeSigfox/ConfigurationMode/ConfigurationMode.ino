@@ -24,9 +24,7 @@ bool inConfiguration;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    // initialize digital pin PIN_LED_GREEN as an output.
-    pinMode(PIN_LED_GREEN, OUTPUT);
-    digitalWrite(PIN_LED_GREEN, HIGH);
+
     inConfiguration = false;
 
     SerialUSB.begin(115200);
@@ -39,7 +37,7 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
 
-    digitalWrite(PIN_LED_GREEN, HIGH);
+
     delay(1000);
 
     if (!inConfiguration) {
@@ -49,7 +47,8 @@ void loop() {
             inConfiguration = true;
         }
     } else {
-        digitalWrite(PIN_LED_GREEN, LOW);
+        ledGreenLight(HIGH);
         delay(1000);
     }    
 }
+
