@@ -16,6 +16,9 @@
 #include "sigFox/smeErrorCode.h"
 
 
+
+#define SN_LENGTH           20 // max digit for SN
+
 /*
 Header  1   0xA5
 Length  1   0x00 – 0xFF It’s the payload length
@@ -102,7 +105,9 @@ private:
     sfxRxFSME    recFsm;					    // Finite State machine for the parsing of the data answer    
     byte         answerCrcCounter;
     byte         dataAck;
-
+    byte         swVer[SN_LENGTH];
+    byte         swVerLength;
+    
     // keep track of the messageId are active
     byte sfxMessageIdx[MAX_MESSAGE_OUT];
 
@@ -128,7 +133,7 @@ public:
 	 * \return the length of the Serial Number
 	 *
      */
-	char  readSerialNumber(char serialNum[]);
+	byte  readSwVersion(char swVer[]);
 	
 	/*
      * \brief Return last message received from the Antenna.
