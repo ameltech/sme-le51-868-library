@@ -3,7 +3,25 @@
  *
  *  Created on: Apr 26, 2015
  * by Mik (smkk@amel-tech.com)
+ * 
+ * License Information
+ * -------------------
  *
+ * Copyright (c) Amel Technology. All right reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 #ifndef SMESFX_H_
@@ -21,20 +39,20 @@
 
 /*
 Header  1   0xA5
-Length  1   0x00 – 0xFF It’s the payload length
+Length  1   0x00 â€“ 0xFF Itâ€™s the payload length
 Type    1   DATA - 0x01: simple data
             KEEP - 0x02: used to send a keep alive message as described
-                         in the SIGFOX standard; it’s in charge to the user to send
+                         in the SIGFOX standard; itâ€™s in charge to the user to send
                          the keep alive message every 24 hours
             BIT - 0x03:  : send a status bit following the SIGFOX protocol
             CONFIRM - 0x10
-Sequence Number 1 0x01 – 0xFF It’s in charge to user to put a valid value to recognize 
+Sequence Number 1 0x01 â€“ 0xFF Itâ€™s in charge to user to put a valid value to recognize 
                                 the association packet send confirm received
-Payload     0x00 – 0xFF     Up to customer DATA: up to 255 bytes
+Payload     0x00 â€“ 0xFF     Up to customer DATA: up to 255 bytes
 KEEP: must be omitted
 BIT: one byte with value 0
 or 1
-CRC 2 Up to customer It’s the sum of all bytes
+CRC 2 Up to customer Itâ€™s the sum of all bytes
 except header and tailer (lsb
 first)
 Tailer 1 0x5A
