@@ -34,8 +34,8 @@
 #include "sigFox/smeErrorCode.h"
 
 
-
-#define SN_LENGTH           20 // max digit for SN
+#define SW_VERSION  30 // max digit for SV
+#define SN_LENGTH   11 // max digit for SN
 
 /*
 Header  1   0xA5
@@ -61,7 +61,6 @@ Example: dataMsg  "HELLO"  = A5 05 01 25 48 65 6C 6C 6F 1F 02 5A
 
 */
 
-
 typedef enum {
 	headerRec,
 	lenRec,
@@ -78,11 +77,13 @@ typedef enum {
 typedef enum {
 	sfxConfigurationMode,
 	sfxEnterDataMode,
+    sfxEnterBtlMode,
+    sfxBtlMode,
 	sfxDataMode
 } sigFoxModeE;
 
-
-#define SFX_ANSWER_LEN 6 // considering the max payload that could be ERROR in Conf mode
+// considering the max payload that could be ERROR in Conf mode or S/N in BTL Mode
+#define SFX_ANSWER_LEN 50 
 
 // only one KEEP and one DATA message could be sent simultaneously
 #define MAX_MESSAGE_OUT 2 // current limit is for 2 message on the air
@@ -105,54 +106,99 @@ typedef struct {
 	byte sequenceNumber; //0x1 to 0xff
 	byte payload[SFX_ANSWER_LEN];
 	byte crc[2];	     // two byte of CRC
+    uint8_t swVersionRead;
 }sigFoxRxMessage;
 
 
 class SmeSFX{
 public:
-    SmeSFX(void);
+    SmeSFX();
     virtual ~SmeSFX(){};
-    void begin (void);
+    void begin (unsigned long baudRate=19200);
 
 private:
-    byte         sfxSequenceNumber;
+    byte            sfxSequenceNumber;
     sigFoxModeE     sfxMode;
     char            message[SFX_MAX_PAYLOAD+7]; // the max payload plus header,tailer CRC and other bytes
     sigFoxRxMessage answer;                     //structure used to received message/configuration
-    byte         sfxError;                      // internal error code 
-    sfxRxFSME    recFsm;					    // Finite State machine for the parsing of the data answer    
-    byte         answerCrcCounter;
-    byte         dataAck;
-    byte         swVer[SN_LENGTH];
-    byte         swVerLength;
+    byte            sfxError;                      // internal error code 
+    sfxRxFSME       recFsm;					    // Finite State machine for the parsing of the data answer    
+    byte            answerCrcCounter;
+    byte            dataAck;
+    byte            swVer[SW_VERSION];
+    byte            sn[SN_LENGTH];
     
     // keep track of the messageId are active
-    byte sfxMessageIdx[MAX_MESSAGE_OUT];
+    byte            sfxMessageIdx[MAX_MESSAGE_OUT];
 
     const byte readSfxAnswer(void);   
     byte       getNewSequenceNumber(void){return sfxSequenceNumber++;};
     byte       composeSfxConfigurationAnswer(char data);
+    byte       composeSfxBtlAnswer(char data);
     byte       composeSfxDataAnswer(char data);
     sfxRxFSME  crcCheck(void);
     byte       insertCRC(char *crcPos, const char *payLoad, byte msgType, byte seqNumber, byte payloadLen); 
     word       calculateCRC(byte payloadLen, byte msgType, byte seqNumber, const char *payload);
     sfxRxFSME  check_msg_error(void);
     sfxRxFSME  checkSequenceConsistence(byte sequence);
+    void       sendSFXMsg(const char *buffer, size_t size);
+    void       prepareSFXForNewMsg(void);
 
 
     // library API
 public:
 
 	/*
-     * \brief Return the S/N of the Antenna
+     * \brief Set the internal Uart BaudRate
      *
-	 * \param [in,out] <serialNum> {The String of the Serial Number}
+	 * \param SfxBaudE the required BaudRate
      * 
-	 * \return the length of the Serial Number
+	 * \return true  Telit change the BaudRate
 	 *
      */
-	byte  readSwVersion(char swVer[]);
+	bool  setBaudRate(SfxBaudE baud);
+    
+    	/*
+     * \brief Get the internal Uart BaudRate
+     *
+	 * \param void
+     * 
+	 * \return the current Baudrate
+	 *
+     */
+	SfxBaudE  getBaudRate(void);
+    
+	/*
+     * \brief Return the SW of the Antenna
+     *
+	 * \param void
+     * 
+	 * \return the SW
+	 *
+     */
+	const byte*  readSwVersion(void);
 	
+    
+	/*
+     * \brief Return the S/N of the Antenna
+     *
+	 * \param void
+     * 
+	 * \return <serialNum> {The String of the Serial Number}
+	 *
+     */
+	const byte*  readSN(void);
+    
+    /*
+     * \brief Move the Chip in Bootloader mode
+     *
+	 * \param void
+     * 
+	 * \return void
+	 *
+     */
+	void  enterBtl(void);
+    
 	/*
      * \brief Return last message received from the Antenna.
 	 *			message could be from the network or from the configuration
@@ -191,11 +237,20 @@ public:
     /*
      * \brief The function sends the configuration message to SFX
      *
-     * \param [in] <confMsg>    {the configuration messagek}
+     * \param [in] <confMsg>    {the configuration message}
      * \param [in] <payloadLen> {the length in bytes of the user data}
      *
      */
     void sfxSendConf(const char confMsg[], byte confLen);
+    
+    /*
+     * \brief The function sends the a command for the boot loader
+     *
+     * \param [in] <btlCmdMsg>    {the Bootloader command  message}
+     * \param [in] <btlCmdMsgLen> {the length in bytes of the Btl Command data}
+     *
+     */
+    void sfxSendBtlPage(const char btlCmdMsg[], uint16_t btlCmdMsgLen);
     
     /*
      * \brief used to send the KEEP message
@@ -225,11 +280,11 @@ public:
     }
 
     /*
-     * \brief To known about the status of the receiving data acknoledge
+     * \brief To known about the status of the receiving data acknowledge
      *
-     * \param vod
+     * \param void
      *
-     * \return one of the possible status of the Finite State Machine that handle the acknoledge message from the Chip
+     * \return one of the possible status of the Finite State Machine that handle the acknowledge message from the Chip
      *
      */
     uint8_t    sfxDataAcknoledge(void){return dataAck;}

@@ -17,19 +17,20 @@
 
 SmeSFX::SmeSFX(void) {
     memset(swVer, 0, SN_LENGTH);
-    swVerLength=0;
+    this->swVer[0]=0;
+    this->sn[0] = 0;
     sfxSequenceNumber = 0x25;
     sfxMode = sfxDataMode;
     recFsm	= headerRec;
 }
 
-void SmeSFX::begin (void){
-    SigFox.begin(19200);
+void SmeSFX::begin (unsigned long baudRate){
+    SigFox.begin(baudRate);
     sfxMode = sfxDataMode;
 }
 
 void SmeSFX::setSfxConfigurationMode(void) {
-    SigFox.print(ENTER_CONF_MODE);
+    SigFox.write(ENTER_CONF_MODE, sizeof(ENTER_CONF_MODE)-1);
     answer.payloadPtr=0;
     sfxMode = sfxConfigurationMode;
 }
@@ -54,15 +55,19 @@ const byte SmeSFX::readSfxAnswer(void)
     while (SigFox.available()) {
         // get the new byte:
         char inChar = (char)SigFox.read();
-
         switch(sfxMode) {
             case sfxConfigurationMode:
             case sfxEnterDataMode:
+            case sfxEnterBtlMode:
             return composeSfxConfigurationAnswer(inChar);
             break;
 
             case sfxDataMode:
             return composeSfxDataAnswer(inChar);
+            break;
+
+            case sfxBtlMode:
+                return composeSfxBtlAnswer(inChar);
             break;
 
             default:
@@ -73,25 +78,36 @@ const byte SmeSFX::readSfxAnswer(void)
     return false;
 }
 
-
+void SmeSFX::prepareSFXForNewMsg(void){
+    //clear old message
+    memset(message, 0 , sizeof(message)); 
+    
+    // clear the rx buffer pointer & message
+    answer.payloadPtr=0;
+    memset(answer.payload, 0xa5 , sizeof(answer.payload));
+}
+    
+void SmeSFX::sfxSendBtlPage(const char btlCmdMsg[], uint16_t btlCmdMsgLen) {       
+    prepareSFXForNewMsg();
+    sendSFXMsg(btlCmdMsg, btlCmdMsgLen);
+}
+    
 void  SmeSFX::sfxSendConf(const char confMsg[], byte confLen) {
-    memset(message, 0 , sizeof(message)); //clear old message
+    prepareSFXForNewMsg();
+    
+    // write the comand on the message
     memcpy(message, confMsg, confLen);
     message[confLen]= SIGFOX_END_MESSAGE;
     
-    // clear the rx buffer pointer
-    answer.payloadPtr=0;
-    memset(answer.payload, 0 , sizeof(answer.payload));
     sfxMode = sfxConfigurationMode;
-    
-    SigFox.print(message);
+    sendSFXMsg(message, strlen(message));
 }
 
 
 
 byte  SmeSFX::sfxSendData(const char payload[], byte payloadLen) {
     if (SFX_MAX_PAYLOAD<payloadLen)
-    return SME_EINVAL; // too long payload
+        return SME_EINVAL; // too long payload
 
     memset(message, 0 , sizeof(message)); //clear old message
     message[0] = SFX_MSG_HEADER;
@@ -106,7 +122,10 @@ byte  SmeSFX::sfxSendData(const char payload[], byte payloadLen) {
     sfxMessageIdx[DATA_SEQUENCE_NUMBER] = message[3];
 
     byte  crcLen= insertCRC(&message[4+payloadLen], payload, SFX_DATA, message[3], payloadLen);
+    
+    // the 4 is due by the Header+payloadLen+DataType+Sequence
     message[4+payloadLen+crcLen] = SFX_MSG_TAILER;
+    size_t messageLen = 4+payloadLen+crcLen +1;  // add the Tailer, too
 
 
     // reset answer Fsm and Ackoledge
@@ -117,9 +136,9 @@ byte  SmeSFX::sfxSendData(const char payload[], byte payloadLen) {
     answer.payloadPtr=0;
     memset(answer.payload, 0 , sizeof(answer.payload));
     
-    SigFox.print((const char*)message);
+    sendSFXMsg((const char*)message, messageLen);
     
-    return 1; // just return true in first library releae
+    return 1; // just return true in first library release
 }
 
 
@@ -141,8 +160,7 @@ void  SmeSFX::sfxSendKeep(void) {
 
     byte  crcLen= insertCRC(&message[4+payloadLen], payload, SFX_DATA, message[3], payloadLen);
     message[4+payloadLen+crcLen] = SFX_MSG_TAILER;*/
-
-    SigFox.print((const char*)message);
+    sendSFXMsg((const char*)message, 4);
 }
 
 
@@ -231,8 +249,8 @@ byte SmeSFX::composeSfxDataAnswer(char data) {
         //stopSfxCommandTimer();
 
         recFsm = headerRec;
+        dataAck = SFX_DATA_ACK_OK;
         if (SFX_MSG_TAILER == data){
-            dataAck = SFX_DATA_ACK_OK;
             sfxError = SME_SFX_OK;
         } else
         sfxError = SME_SFX_KO;
@@ -284,63 +302,172 @@ sfxRxFSME SmeSFX::check_msg_error(void) {
 
 }
 
+
 byte  SmeSFX::composeSfxConfigurationAnswer(char data){
     // store all the received bye till the end of message
     if (data != SIGFOX_END_MESSAGE) {
         answer.payload[answer.payloadPtr++]= data;
         } else {
-        // remove the charged timeout
-        //stopSfxCommandTimer();
         
-        // end found check if the answer is ok, just check the first Byte
-        byte msgOk = SGF_CONF_ERROR != answer.payload[0];
-        if (msgOk) {
-            // if the status was configured to enter in data mode
-            // adjust here the new status
-            if (sfxMode == sfxEnterDataMode) {
-                sfxMode = sfxDataMode;
+        // in case of SWVersion skip the first 0x0d
+        if (answer.swVersionRead) {
+            answer.swVersionRead=0;
+        } else {
+            // end found check if the answer is ok, just check the first Byte
+            byte msgOk = SGF_CONF_ERROR != answer.payload[0];
+            if (msgOk) {
+                // if the status was configured to enter in data mode
+                // adjust here the new status
+                switch(sfxMode){
+                    case sfxEnterDataMode:
+                        sfxMode = sfxDataMode;
+                    break;
+                    
+                    case sfxEnterBtlMode:
+                        sfxMode= sfxBtlMode;
+                    break;
+                        
+                    default:
+                    break;
+                }
+                sfxError = SME_SFX_OK;
+                } else {
+                sfxError = SME_SFX_KO;
             }
-            sfxError = SME_SFX_OK;
-            } else {
-            sfxError = SME_SFX_KO;
         }
-        
         return sfxError;
     }
 
     return SME_OK;
 }
 
-byte  SmeSFX::readSwVersion(char swVer[]) {
-    
-    // if it already loaded return it immediately
-    if (swVerLength ==0) {
-    
-    // get the S/N
-    byte exit = 0;
-    // if is not in configuration Mode move it
-    if (sfxMode != sfxConfigurationMode)
-        setSfxConfigurationMode();
+
+byte  SmeSFX::composeSfxBtlAnswer(char data){
+
+    // store all the received bye till the last which is the Error Code
+    if (answer.payloadPtr < SFX_BTL_MSG_LEN-1) {
         
-    do {
-        if (sfxAntenna.hasSfxAnswer()) {
-            exit++; // move the FSM
-            if (exit ==1){
-                sfxSendConf(FW_SW_VERSION, sizeof(FW_SW_VERSION)-1);
-            }
+        // the first byte to consider must be 'G'
+        if ((answer.payloadPtr==0) && (data!= 'G'))
+            return SME_OK;
+        
+        answer.payload[answer.payloadPtr++]= data; //just store the data
+    } else {
+        answer.payload[answer.payloadPtr]= data; // store the result code
+        
+        if (SFX_BTL_ACK_OK == data) {
+            sfxError = SME_SFX_OK;
+        } else {
+            sfxError = SME_SFX_KO;
         }
-    } while(exit<2);
-    
-    this->swVerLength = answer.payloadPtr;
-    if (this->swVerLength>SN_LENGTH)
-    this->swVerLength = SN_LENGTH;
-    
-    memcpy(this->swVer, getLastReceivedMessage(), this->swVerLength);    
+
+        return sfxError;
     }
 
-    memcpy(swVer, this->swVer, this->swVerLength); 
-
-    return this->swVerLength;
+    return SME_OK;
 }
 
+SfxBaudE  SmeSFX:: getBaudRate(void){
+    sfxSendConf("ATS210?", 7);
+    
+     byte exit = 0;
+     do {
+         sfxAntenna.hasSfxAnswer();
+         exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
+         delay(100);
+     } while(!exit);
+   
+    int baud=0;
+    if ((sfxAntenna.getSfxError() == SME_SFX_OK)){
+        baud = atoi((const char*)&answer.payload[5]);
+    }    
+    
+    return static_cast<SfxBaudE>(baud);
+}
+
+bool  SmeSFX:: setBaudRate(SfxBaudE baud){
+    char send[8];
+    memcpy(send,"ATS210?",6);
+    send[6]='=';
+    itoa(baud, &send[7], 10);
+    sfxSendConf(send, sizeof(send));
+        
+    byte exit = 0;
+    do {
+        sfxAntenna.hasSfxAnswer();
+        exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
+        delay(100);
+    } while(!exit);   
+    
+    return(exit); 
+}
+
+const byte*  SmeSFX::readSwVersion(void) {
+    
+    // if it already loaded return it immediately
+    if (this->swVer[0] ==0) {
+        
+        // get the S/N
+        byte exit = 0;
+        // if is not in configuration Mode move it
+        if (sfxMode != sfxConfigurationMode) {
+            setSfxConfigurationMode();
+        }
+
+        sfxSendConf(FW_SW_VERSION, sizeof(FW_SW_VERSION)-1);
+        answer.swVersionRead=1;
+        
+        do {
+            if (sfxAntenna.hasSfxAnswer()) {
+                exit++; // move the FSM
+            }
+            delay(100);
+        } while(exit<1);
+                
+        memcpy(this->swVer, getLastReceivedMessage(), SW_VERSION);
+    }
+
+
+    return this->swVer;
+}
+
+
+const byte*  SmeSFX::readSN(void) {
+    
+    // if it already loaded return it immediately
+    if (this->sn[0] ==0) {
+        
+        // get the S/N
+        byte exit = 0;
+        // if is not in configuration Mode move it
+        if (sfxMode != sfxConfigurationMode) {
+            setSfxConfigurationMode();
+        }
+
+        sfxSendConf(GET_SN, GET_SN_LEN);
+        
+        do {
+            if (sfxAntenna.hasSfxAnswer()) {
+                exit++; // move the FSM
+            }
+            delay(100);
+        } while(exit<1);
+        
+        memcpy(this->sn, getLastReceivedMessage(), SN_LENGTH);
+    }
+
+    return this->sn;
+}
+
+void SmeSFX::enterBtl(void) {
+    //sfxSendConf(GET_SN, GET_SN_LEN); // move in Bootloader mode
+    
+    sfxSendConf(FW_BOOTLOADER, sizeof(FW_BOOTLOADER)-1); // move in Bootloader mode
+    sfxMode = sfxEnterBtlMode;
+}
+
+void SmeSFX::sendSFXMsg(const char *buffer, size_t size) {    
+    sfxError= SME_OK; // reset the answer FSM
+    SigFox.write(buffer, size);
+}
 SmeSFX  sfxAntenna;
