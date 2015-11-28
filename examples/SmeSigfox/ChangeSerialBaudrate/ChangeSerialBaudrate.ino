@@ -3,6 +3,13 @@
 
    The Sketch shows as to change the internal SFX Uart baudrate.
 
+   Adapt the initialization of the SFX chips with the real baudrate.
+   The default one is 19200, so the first time this sketch runs the corect 
+   initializatioin api is   sfxAntenna.begin(19200);
+
+   The second time need to be change according with the value set to the 
+   sfxAntenna.setBaudRate(<baudRate>); API, for this example 115200
+
     created 27 Nov 2015
     by Mik (smkk@amel-tech.com)
 
@@ -21,7 +28,7 @@ bool serialChanged = false;
 void setup() {
 
   SerialUSB.begin(115200);
-  sfxAntenna.begin(115200);
+  sfxAntenna.begin(19200);
 
 
   SerialUSB.println("\n\nSFX in Command mode");
@@ -38,7 +45,7 @@ void loop() {
   if (answerReady) {
 
     if (!serialChanged && sfxAntenna.getBaudRate() != B19200) {
-      sfxAntenna.setBaudRate(B19200);
+      sfxAntenna.setBaudRate(B115200);
       delay(1000);
       do {
         ledGreenLight(HIGH);
