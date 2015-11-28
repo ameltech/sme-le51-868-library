@@ -127,6 +127,7 @@ private:
     byte            dataAck;
     byte            swVer[SW_VERSION];
     byte            sn[SN_LENGTH];
+    uint8_t         sfxSleepMode;
     
     // keep track of the messageId are active
     byte            sfxMessageIdx[MAX_MESSAGE_OUT];
@@ -288,6 +289,26 @@ public:
      *
      */
     uint8_t    sfxDataAcknoledge(void){return dataAck;}
+        
+    /*
+     * \brief configure the Power safe Mode for the SFX
+     
+     * \param uint8_t the wake_up mode
+     *
+     * \return void
+     *
+     */
+    void setSfxSleepMode(uint8_t wakeMode);
+    
+    /*
+     * \brief return the power safe mode type
+     
+     * \param void
+     *
+     * \return uint8_t the type of power safe
+     *
+     */
+     uint8_t getSfxSleepMode(void);
 };
 
 // external variable used by the sketches

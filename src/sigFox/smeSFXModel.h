@@ -76,11 +76,61 @@ Nn: minor version number of bootloader
 */
 #define FW_SW_VERSION		"AT/V"
 
-#define SFX_BAUDRATE_REG    "S210"
 
+// ---------- BaudRate Register -------------------
+#define SFX_BAUDRATE_REG    "ATS210"
+/*
+1. Serial baud rate : S210
+This register selects the serial baud rate value. It is linked to the time-out register S214. They
+can be set with the following values:
+*/
+typedef enum {
+    BNOBaudRate,
+    B1200,
+    B2400,
+    B4800,
+    B9600,
+    B19200,
+    B38400,
+    B57600,
+    B115200
+}SfxBaudE;
+// ---------- BaudRate Register -------------------
+
+
+// ---------- SerialNum Register -------------------
 #define GET_SN   "ATS192?"
 #define GET_SN_LEN (sizeof(GET_SN)-1)
+// ---------- SerialNum Register -------------------
 
+
+// ---------- PowerSafe Register -------------------
+/*NOTE:
+When a receiver runs Wake on Radio, the sender must send radio frames with very long
+preamble in order to increase the probability of detection by the sleeping receiver. The
+higher probability is reached when the preamble of sender is equal to the sleep duration of
+the sleeping receiver. For example, if radio data rate is 38,4 kb/s, and if the sleeping device
+is set to wakeup every 1000 ms, you should consider to set the preamble length (S204
+register) to [38,4 x 1000]/8 = 4800 bytes of preamble on sender side.
+WARNING:
+Due to some internal limitations, when Wake on Radio is used, the maximum frame length
+is limited to 210 bytes in Addressed Secured mode.
+In Transparent mode, when Wake on Radio is used the maximum frame length depends on
+the combination of radio baud rate and serial speed, and decreases when using higher radio
+baud rate and lower serial speed values; in the worst case (radio baud rate set to 115.2 Kbps
+and serial speed set to 1200 bps) it is limited to 126 bytes.
+
+Wake on Radio can not be enabled alone; otherwise there is a risk to never take back
+control of the sleeping module. Wake on Radio is enabled only in combination with Hard
+stand by mode ensuring to always have a chance to awake the module by stand-by pin.
+*/
+#define SFX_CFG_WAKE_ADDR   "ATS240"#define SFX_NO_WAKE         '0'#define SFX_HW_WAKE         '1'#define SFX_SW_WAKE         '2'#define SFX_RADIO_WAKE      '4'#define SFX_ERROR_WAKE      0xFF
+
+/*Stand By Activation
+When serial stand by is set, the ‘ATP’ command put the module in stand
+by mode. To wake up the module, send a NULL (0x00) character. */
+#define SFX_SW_SLEEP_ACTIVATION "ATP"
+// ---------- PowerSafe Register -------------------
 
 
 #define SIGFOX_END_READ     '?'
@@ -149,23 +199,6 @@ typedef enum
     TELIT_SFX_SFX_INIT_ERROR,
     TELIT_SFX_SFX_SEND_ERROR,
     TELIT_SFX_SFX_CLOSE_ERROR} SFX_ACK;
-
-/*
-1. Serial baud rate : S210
-This register selects the serial baud rate value. It is linked to the time-out register S214. They
-can be set with the following values:
-*/
-typedef enum {
-    BNOBaudRate,
-    B1200,
-    B2400,
-    B4800,
-    B9600,
-    B19200,
-    B38400,
-    B57600,
-    B115200
-}SfxBaudE;
 
 #define SIG_FOX_MAX_REGISTER_LEN 0x6
 #define SIG_FOX_MAX_REG_VALUE_LEN 0x10

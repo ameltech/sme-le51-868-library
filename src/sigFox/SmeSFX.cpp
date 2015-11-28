@@ -368,7 +368,11 @@ byte  SmeSFX::composeSfxBtlAnswer(char data){
 }
 
 SfxBaudE  SmeSFX:: getBaudRate(void){
-    sfxSendConf("ATS210?", 7);
+     char send[8];
+        
+     memcpy(send,SFX_BAUDRATE_REG,6);
+     send[6]=SIGFOX_END_READ;        
+     sfxSendConf(send, 7);
     
      byte exit = 0;
      do {
@@ -387,7 +391,7 @@ SfxBaudE  SmeSFX:: getBaudRate(void){
 
 bool  SmeSFX:: setBaudRate(SfxBaudE baud){
     char send[8];
-    memcpy(send,"ATS210?",6);
+    memcpy(send,SFX_BAUDRATE_REG,6); 
     send[6]='=';
     itoa(baud, &send[7], 10);
     sfxSendConf(send, sizeof(send));
@@ -402,6 +406,49 @@ bool  SmeSFX:: setBaudRate(SfxBaudE baud){
     return(exit); 
 }
 
+void SmeSFX::setSfxSleepMode(uint8_t wakeMode){
+    char send[8];
+    memcpy(send,SFX_CFG_WAKE_ADDR,6);
+    send[6]='=';
+    send[7]=wakeMode;
+    sfxSendConf(send, sizeof(send));
+    
+    byte exit = 0;
+    do {
+        sfxAntenna.hasSfxAnswer();
+        exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
+        delay(100);
+    } while(!exit);
+    
+    sfxSleepMode = wakeMode;
+    
+}
+
+
+uint8_t SmeSFX::getSfxSleepMode(void){
+    char send[8];
+        
+     memcpy(send,SFX_CFG_WAKE_ADDR,6);
+     send[6]=SIGFOX_END_READ;        
+     sfxSendConf(send, 7);
+    
+     byte exit = 0;
+     do {
+         sfxAntenna.hasSfxAnswer();
+         exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
+         delay(100);
+     } while(!exit);
+   
+    int baud=0;
+    if ((sfxAntenna.getSfxError() == SME_SFX_OK)){
+        return (answer.payload[5]);
+    }    
+    
+    return 0xff;
+}    
+    
+     
+     
 const byte*  SmeSFX::readSwVersion(void) {
     
     // if it already loaded return it immediately
