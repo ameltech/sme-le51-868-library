@@ -23,12 +23,11 @@
 #include <SmeSFX.h>
 #include <Arduino.h>
 
-bool serialChanged = false;
 // the setup function runs once when you press reset or power the board
 void setup() {
 
   SerialUSB.begin(115200);
-  sfxAntenna.begin(19200);
+  sfxAntenna.begin();
 
 
   SerialUSB.println("\n\nSFX in Command mode");
@@ -44,7 +43,7 @@ void loop() {
 
   if (answerReady) {
 
-    if (!serialChanged && sfxAntenna.getBaudRate() != B19200) {
+    if (sfxAntenna.getBaudRate() != B115200) {
       sfxAntenna.setBaudRate(B115200);
       delay(1000);
       do {
@@ -60,5 +59,3 @@ void loop() {
     } while (1);
   }
 }
-
-

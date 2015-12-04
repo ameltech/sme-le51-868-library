@@ -18,13 +18,14 @@ http://www.telit.com/products/product-service-selector/product-service-selector/
 #include <SmeSFX.h>
 #include <Arduino.h>
 
-char helloMsg[5]= {'H','e', 'l', 'l', 'o'};
+char helloMsg[5] = {'H', 'e', 'l', 'l', 'o'};
 
 
 static void sleepSFX(void) {
-	if (sfxAntenna.getSfxSleepMode()==SFX_HW_WAKE){
-		SerialUSB.println("Set PowerSave Mode");
-		sfxWakeup();
+	if (sfxAntenna.getSfxSleepMode() == SFX_HW_WAKE) {
+		SerialUSB.println("Set PowerSave Mode");     
+		sfxSleep();
+		delay(10);     
 	}
 }
 
@@ -36,32 +37,37 @@ void setup() {
 	SerialUSB.begin(115200);
 	sfxAntenna.begin();
 
-	if (!SerialUSB) {
+	//while (!SerialUSB.available()) {
+	while (!SerialUSB) {
 		;
 	}
+
+	sfxWakeup();
+	delay(10);
+
 
 	SerialUSB.println("SFX in Command mode");
 	sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
 
 	do {
 		uint8_t answerReady = sfxAntenna.hasSfxAnswer();
-		if (answerReady){
-			switch (initFinish){
+		if (answerReady) {
+			switch (initFinish) {
 			case 1:
 				// set the PowerSafe mode
 				sfxAntenna.setSfxSleepMode(SFX_HW_WAKE);
+				sfxAntenna.setSfxDataMode();
 				initFinish++;
 				break;
 
 			case 2:
 				SerialUSB.println("New Power Safe configured !");
-				sfxAntenna.setSfxDataMode();
 				initFinish++;
 				break;
 
 			}
 		}
-	} while (initFinish!=2);
+	} while (initFinish != 2);
 
 	SerialUSB.println("The SFX chip will be move in powersafe after every msg sent.");
 	SerialUSB.println("To test the PowerSafe type:");
@@ -69,36 +75,57 @@ void setup() {
 	SerialUSB.println("0) don't wake (the message will NOT sent)");
 }
 
-unsigned long time;
+unsigned long time, newTime;
+#define TIME_OUT 8000
 
 // the loop function runs over and over again forever
 void loop() {
+	char wake = 0;
+	uint8_t exit = 0;
+
+  // sleep the SFX again for new test
+  sfxSleep();
 
 	// wait for a trigger from the Serial Usb
-	while (!SerialUSB.available()) {
-		char wake = (char)SerialUSB.read();
-
+	do {
+		if (SerialUSB.available()) {
+			wake = (char)SerialUSB.read();
+		}
 		switch (wake) {
 
 		// wake SFX
 		case '1':
-			sfxWakeup();
+			SerialUSB.println("WakeUp SFX");
+			if (sfxAntenna.getSfxSleepMode() == SFX_HW_WAKE) {
+				sfxWakeup();
+				delay(10);
+			}  
+			exit = 1;
 			break;
 
 			//do nothing.... do not wake SFX
 		case '0':
+			exit = 1;
+			break;
+
+		default:
 			break;
 		}
-	}
+	} while (!exit);
+
+
+	ledGreenLight(LOW);
+	ledRedLight(LOW);
+	ledBlueLight(LOW);
 
 	// send Hello on the air
+	SerialUSB.println("Sending Hello over the air");
 	sfxAntenna.sfxSendData(helloMsg, strlen((char*)helloMsg));
 
+	exit=0;
 	//charge timeout it will be useful to show
 	// the the SFX was not waked up
 	time = millis();
-
-	uint8_t exit=0;
 	do {
 		bool answerReady = sfxAntenna.hasSfxAnswer();
 
@@ -117,36 +144,35 @@ void loop() {
 
 				case SFX_DATA_ACK_OK:
 					ledGreenLight(HIGH);
-					SerialUSB.println(' ');
-					SerialUSB.println("Answer OK :) :) :) :)");
+					SerialUSB.println("\nAnswer OK :) :) :) :)\n");
 					exit = 1;
 					break;
 
 				case SFX_DATA_ACK_KO:
 					ledRedLight(HIGH);
-					SerialUSB.println(' ');
-					SerialUSB.println("Answer KO :( :( :( :(");
-					exit=1;
+					SerialUSB.println("\nAnswer KO :( :( :( :(\n");
+					exit = 1;
 					break;
 				}
 			}
 		}
+
 		// after 10Sec. exit from timeout
 		// it is enough because SFX message, and its answer,
 		// take around 6Sec.
-		if ((millis()-time) >= 10000)
+		newTime = millis();
+		if ((newTime- time) >= TIME_OUT) {
 			exit = 2;
+		}      
 
 	} while (!exit);
 
 	// if timeout is expired, show with the blu led on
-	if (exit=2) {
+	if (exit == 2) {
 		ledGreenLight(LOW);
 		ledRedLight(LOW);
 		ledBlueLight(HIGH);
+    SerialUSB.println("TimeOUT !!:( :( :( :(\n");
 	}
-
-	// sleep the SFX again for new test
-	sfxSleep();
-
 }
+

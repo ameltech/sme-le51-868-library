@@ -3676,6 +3676,9 @@ static volatile char debugEndPos = 0x5A;
 static uint8_t ledBlu = 0;
 
 
+// to be set to TRUE in case of first FwDownload fails
+bool recovery = true;
+
 static void sendAndDbg(const char btlCmdMsg[], uint16_t btlCmdMsgLen) {
   ledBlu = !ledBlu;
   ledBlueLight(ledBlu);
@@ -3704,7 +3707,13 @@ static void eraseFlashCmd(void) {
   int i = 0;
 
   //write SN
-  memcpy(dwnlStream, sfxAntenna.readSN(), BTLPKG_SN);
+  if (!recovery) {
+    memcpy(dwnlStream, sfxAntenna.readSN(), BTLPKG_SN);
+  } else {
+    //write SN full of 0x30
+    for (i = 0; i < BTLPKG_SN; i++)
+      dwnlStream[i] = 0x30;
+  }
 
   dwnlStream[BTLPKG_COMMAND_POS] = ERASE_FLASH;
 
@@ -3722,7 +3731,7 @@ static void sendFW(void) {
   uint16_t flashAddr = flashLine * BYTES_PER_LINE;
 
   if (flashLine == 0)
-    SerialUSB.print("start Dwnl ");
+    SerialUSB.print("\nstart Dwnl ");
 
   SerialUSB.print("page ");
   SerialUSB.print((flashAddr), HEX);
@@ -3732,7 +3741,7 @@ static void sendFW(void) {
   for (i = 0; i < BTLPKG_SN; i++)
     dwnlStream[i] = 0x30;
 
-  dwnlStream[BTLPKG_COMMAND_POS] = FW_DOWNLOAD;
+  dwnlStream[BTLPKG_COMMAND_POS] = FW_DOWNLOAD_ENCRYPTED;
 
   int limit = BTLPKG_DATA / BYTES_PER_LINE;
   dwnlStream[BTLPKG_ADD_POS] = (char)(flashAddr >> 8);
@@ -3757,7 +3766,13 @@ static void sendCRC(void) {
   int i = 0;
 
   //write SN
-  memcpy(dwnlStream, sfxAntenna.readSN(), BTLPKG_SN);
+  if (!recovery) {
+    memcpy(dwnlStream, sfxAntenna.readSN(), BTLPKG_SN);
+  } else {
+    //write SN full of 0x30
+    for (i = 0; i < BTLPKG_SN; i++)
+      dwnlStream[i] = 0x30;
+  }
 
   dwnlStream[BTLPKG_COMMAND_POS] = CRC_COMPARE;
 
@@ -3770,14 +3785,20 @@ static void sendCRC(void) {
   // send the command to the CHIP
   sendAndDbg(dwnlStream, BTLPKG_TOTAL_PKG);
 
-  SerialUSB.print("Move in CLOSE Flash");
+  SerialUSB.print("Move in CLOSE Flash ");
 }
 
 static void sendCloseDwnl(void) {
   int i = 0;
 
   //write SN
-  memcpy(dwnlStream, sfxAntenna.readSN(), BTLPKG_SN);
+  if (!recovery) {
+    memcpy(dwnlStream, sfxAntenna.readSN(), BTLPKG_SN);
+  } else {
+    //write SN full of 0x30
+    for (i = 0; i < BTLPKG_SN; i++)
+      dwnlStream[i] = 0x30;
+  }
 
   dwnlStream[BTLPKG_COMMAND_POS] = EXIT_FLASH;
 
@@ -3789,34 +3810,94 @@ static void sendCloseDwnl(void) {
   // send the command to the CHIP
   sendAndDbg(dwnlStream, BTLPKG_TOTAL_PKG);
 
-  SerialUSB.print("CLosing....");
+  SerialUSB.println("Closing....");
 }
 
-
+volatile char downloadMode  ;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
 
   SerialUSB.begin(115200);
-  sfxAntenna.begin(115200);
 
+  // wait for serial port to connect. Needed for native USB
   while (!SerialUSB) {
-    ; // wait for serial port to connect. Needed for native USB
+    ;
   }
 
   SerialUSB.println("ATTENTION: the Sketch will upgrade your Telit SFX component.");
-  SerialUSB.println("Do not unplug the power till the end of the download which is visible on the Serial monitor or with the Green led ligth on");
-  SerialUSB.println("\nAt the end the internal SFX Uart is set to 115200, chnge all your previos sketch with this new baudrate");
-  SerialUSB.println("or use the ChangeSerial sketch to move at your preferred baudrate");
+  SerialUSB.println("Do not unplug the power till the end of the download that is visible on the Serial monitor or with the Green led light on");
 
-  SerialUSB.println("\n\npress ENTER to continue");
+  SerialUSB.println("\nThe internal SFX Uart is set to 115200, change the baud rate using the ChangeSerial sketch.");
 
-  while (!SerialUSB.available()) {
-    ; // wait a char
+  SerialUSB.println("\nThe sketch can upgrade the Fw without external Hw operation.");
+  SerialUSB.println(" If for any reason it fails, the Telit chip will remain without FW and it will become unusable,");
+  SerialUSB.println(" in this case the alternate procedure needs to be be used.");
+
+  SerialUSB.println("\nThe alternate solution needs to close the JP1 jumper, the JP1 jumper is not present, but there are 2 golden holes at the end of the Telit chip.");
+
+  SerialUSB.println("\nThe Telit chip reads the level on the pin connected to the JP1 at the startup phase, a power down/up cycle is required.");
+  SerialUSB.println("The alternate solution could be used in any case, even as first solution.");
+
+
+  SerialUSB.print("\n\nDo You want download the ");
+  SerialUSB.print(VERSION);
+  SerialUSB.println(" version ?");
+  SerialUSB.println("\nchoose the way to continue");
+  SerialUSB.println("0 Stop FwDownload ");
+  SerialUSB.println("1 normal way (no Hw operation)");
+  SerialUSB.println("2 alternate way (easy Hw operation)\n");
+
+
+  sfxAntenna.begin(115200);
+
+
+  // wait a char
+  bool exit = false;
+  do {
+    downloadMode = (char) SerialUSB.read();
+    switch (downloadMode) {
+
+      case '0':
+        while (1){          
+          ledBlueLight(LOW);
+          ledGreenLight(LOW);
+          delay (500);
+          ledGreenLight(HIGH);
+          delay (500);
+        }
+
+      case '1':
+        recovery = false;
+        exit = true;
+        SerialUSB.println(" SW way\n");
+        break;
+
+      case '2':
+        recovery = true;
+        exit = true;
+        SerialUSB.println(" HW way\n");
+        break;
+
+      default:
+        break;
+    }
+  } while (!exit);
+
+  if (!recovery) {
+    SerialUSB.println("\n\nSFX in Command mode");
+    sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
+  } else {
+    ledBlu = HIGH;
+    ledRedLight(LOW);
+    ledBlueLight(ledBlu);
+
+    sfxAntenna.enterBtl(recovery);
+
+    SerialUSB.println("Enter in FLASH Mode");
+    enterFlashCmd();
+    fwDwnState = EraseFlash;
   }
-
-  SerialUSB.println("\n\nSFX in Command mode");
-  sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
 
 
   ledGreenLight(LOW);
@@ -3840,10 +3921,10 @@ void loop() {
         SerialUSB.println((const char*)sfxAntenna.readSwVersion());
 
         // if the SW need to be updated....
-        if (diff != 0) {
+        if (diff == 0) {
           sfxAntenna.readSN();
           SerialUSB.println("\nMove in BTL Mode");
-          sfxAntenna.enterBtl();
+          sfxAntenna.enterBtl(recovery);
           fwDwnState = EnterFlashMode;
         } else {
           SerialUSB.println("FW ALREADY UP TO DATE");
@@ -3863,43 +3944,57 @@ void loop() {
         ledRedLight(LOW);
         ledBlu = HIGH;
         ledBlueLight(ledBlu);
-        delay(5000);
+        delay(500);
         SerialUSB.println("Enter in FLASH Mode");
         enterFlashCmd();
         fwDwnState = EraseFlash;
         break;
 
       case EraseFlash:
+        delay(500);
         SerialUSB.println("Erase FLASH");
         eraseFlashCmd();
         fwDwnState = StartDwnl;
-        SerialUSB.print("Move in FW DWNLOAD");
+        SerialUSB.print("Move in FW DOWNLOAD");
         break;
 
       case StartDwnl:
+        delay(100);
         sendFW();
         break;
 
       case CrcDwn:
+        delay(500);
         sendCRC();
         fwDwnState = CloseDwnl;
         break;
 
       case CloseDwnl:
+        delay(500);
         sendCloseDwnl();
         fwDwnState = WaitingFinish;
         break;
 
       case WaitingFinish:
+        delay(500);
         fwDwnState = FinishDwn;
-        SerialUSB.println("\nFW UPDATED");
+        SerialUSB.println("\n\nFW UPDATED");
+        SerialUSB.println("Power DOWN your SmartEverything");
+        SerialUSB.println("REMOVE THE JUMPER ON JP1 !");
+        SerialUSB.println("Remeber internal UART is now set to 115200");
         break;
     }
   }
 
   if (fwDwnState == FinishDwn) {
-    ledBlueLight(LOW);
-    ledGreenLight(HIGH);
+        while (1){          
+          ledBlueLight(LOW);
+          ledGreenLight(LOW);
+          delay (500);
+          ledGreenLight(HIGH);
+          delay (500);
+        };
   }
 }
+
 
