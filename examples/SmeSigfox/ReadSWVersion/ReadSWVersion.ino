@@ -27,7 +27,7 @@
 void setup() {
 
   SerialUSB.begin(115200);
-  sfxAntenna.begin(115200);
+  sfxAntenna.begin();
 
 
   SerialUSB.println("\n\nSFX in Command mode");
