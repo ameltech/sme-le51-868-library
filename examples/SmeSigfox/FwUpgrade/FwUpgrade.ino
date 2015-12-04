@@ -3921,7 +3921,7 @@ void loop() {
         SerialUSB.println((const char*)sfxAntenna.readSwVersion());
 
         // if the SW need to be updated....
-        if (diff == 0) {
+        if (diff != 0) {
           sfxAntenna.readSN();
           SerialUSB.println("\nMove in BTL Mode");
           sfxAntenna.enterBtl(recovery);
