@@ -127,8 +127,7 @@ private:
     byte            dataAck;
     byte            swVer[SW_VERSION];
     byte            sn[SN_LENGTH];
-    uint8_t         sfxSleepMode;
-    
+    uint8_t         sleepMode;
     // keep track of the messageId are active
     byte            sfxMessageIdx[MAX_MESSAGE_OUT];
 
@@ -198,13 +197,14 @@ public:
 	 * \return void
 	 *
      */
-	void  enterBtl(void);
+	void  enterBtl(bool recovery);
     
 	/*
      * \brief Return last message received from the Antenna.
 	 *			message could be from the network or from the configuration
 	 *			depending of the result of getSfxMode()
      *
+     * \param bool if it is in recovery phase or normal state
 	 *  
 	 * \return the last 
 	 *
@@ -309,6 +309,16 @@ public:
      *
      */
      uint8_t getSfxSleepMode(void);
+     
+    /*
+     * \brief Factory Reset of the Telit chip
+     
+     * \param void
+     *
+     * \return void
+     *
+     */
+     void setSfxFactoryReset(void);
 };
 
 // external variable used by the sketches

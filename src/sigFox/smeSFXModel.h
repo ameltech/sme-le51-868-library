@@ -168,7 +168,8 @@ by mode. To wake up the module, send a NULL (0x00) character. */
 // BTL Mode Commands
 #define ENTER_FLASH 0x11
 #define ERASE_FLASH 0x22
-#define FW_DOWNLOAD 0x34
+#define FW_DOWNLOAD 0x33
+#define FW_DOWNLOAD_ENCRYPTED 0x34
 #define CRC_COMPARE 0x66
 #define EXIT_FLASH  0x55
 

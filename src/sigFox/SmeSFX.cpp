@@ -22,6 +22,7 @@ SmeSFX::SmeSFX(void) {
     sfxSequenceNumber = 0x25;
     sfxMode = sfxDataMode;
     recFsm	= headerRec;
+    sleepMode = SFX_ERROR_WAKE;
 }
 
 void SmeSFX::begin (unsigned long baudRate){
@@ -245,9 +246,6 @@ byte SmeSFX::composeSfxDataAnswer(char data) {
         break;
 
         case tailerRec:
-        // remove the charged timeout
-        //stopSfxCommandTimer();
-
         recFsm = headerRec;
         dataAck = SFX_DATA_ACK_OK;
         if (SFX_MSG_TAILER == data){
@@ -258,9 +256,6 @@ byte SmeSFX::composeSfxDataAnswer(char data) {
 
         case nullState:
         // enter here in case of CRC error or sequence error
-        // remove all the last incoming data
-        // remove the charged timeout
-        //stopSfxCommandTimer();
         dataAck = SFX_DATA_ACK_KO;
         break;
     }
@@ -368,45 +363,80 @@ byte  SmeSFX::composeSfxBtlAnswer(char data){
 }
 
 SfxBaudE  SmeSFX:: getBaudRate(void){
-     char send[8];
-        
-     memcpy(send,SFX_BAUDRATE_REG,6);
-     send[6]=SIGFOX_END_READ;        
-     sfxSendConf(send, 7);
     
-     byte exit = 0;
-     do {
-         sfxAntenna.hasSfxAnswer();
-         exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
-         delay(100);
-     } while(!exit);
-   
-    int baud=0;
-    if ((sfxAntenna.getSfxError() == SME_SFX_OK)){
-        baud = atoi((const char*)&answer.payload[5]);
-    }    
+    // the SFX chip must be in configuration mode
+    if (sfxAntenna.getSfxMode() == sfxDataMode) {
+        return BNOBaudRate;
+    }
     
-    return static_cast<SfxBaudE>(baud);
-}
-
-bool  SmeSFX:: setBaudRate(SfxBaudE baud){
     char send[8];
-    memcpy(send,SFX_BAUDRATE_REG,6); 
-    send[6]='=';
-    itoa(baud, &send[7], 10);
-    sfxSendConf(send, sizeof(send));
-        
+    
+    memcpy(send,SFX_BAUDRATE_REG,6);
+    send[6]=SIGFOX_END_READ;
+    sfxSendConf(send, 7);
+    
     byte exit = 0;
     do {
         sfxAntenna.hasSfxAnswer();
         exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
         delay(100);
-    } while(!exit);   
+    } while(!exit);
     
-    return(exit); 
+    int baud=0;
+    if ((sfxAntenna.getSfxError() == SME_SFX_OK)){
+        baud = atoi((const char*)&answer.payload[5]);
+    }
+    
+    return static_cast<SfxBaudE>(baud);
+}
+
+bool  SmeSFX:: setBaudRate(SfxBaudE baud){
+    
+    // the SFX chip must be in configuration mode
+    if (sfxAntenna.getSfxMode() == sfxDataMode) {
+        return 0;
+    }
+    
+    char send[8];
+    memcpy(send,SFX_BAUDRATE_REG,6);
+    send[6]='=';
+    itoa(baud, &send[7], 10);
+    sfxSendConf(send, sizeof(send));
+    
+    byte exit = 0;
+    do {
+        sfxAntenna.hasSfxAnswer();
+        exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
+        delay(100);
+    } while(!exit);
+    
+    return(exit);
+}
+
+void SmeSFX::setSfxFactoryReset(void){
+    
+    // the SFX chip must be in configuration mode
+    if (sfxAntenna.getSfxMode() == sfxDataMode) {
+        return ;
+    }
+    sfxSendConf(RESET_FAB_MODE, sizeof(RESET_FAB_MODE)-1);
+    
+    byte exit = 0;
+    do {
+        sfxAntenna.hasSfxAnswer();
+        exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
+        delay(100);
+    } while(!exit);
+    
 }
 
 void SmeSFX::setSfxSleepMode(uint8_t wakeMode){
+    
+    // the SFX chip must be in configuration mode
+    if (sfxAntenna.getSfxMode() == sfxDataMode) {
+        return ;
+    }
+    
     char send[8];
     memcpy(send,SFX_CFG_WAKE_ADDR,6);
     send[6]='=';
@@ -420,46 +450,52 @@ void SmeSFX::setSfxSleepMode(uint8_t wakeMode){
         delay(100);
     } while(!exit);
     
-    sfxSleepMode = wakeMode;
-    
+    sleepMode = wakeMode;
 }
 
-
 uint8_t SmeSFX::getSfxSleepMode(void){
-    char send[8];
+    if (sleepMode == SFX_ERROR_WAKE) {
+                
+        // the SFX chip must be in configuration mode
+        if (sfxAntenna.getSfxMode() == sfxDataMode) {
+            return SFX_ERROR_WAKE;
+        }
         
-     memcpy(send,SFX_CFG_WAKE_ADDR,6);
-     send[6]=SIGFOX_END_READ;        
-     sfxSendConf(send, 7);
-    
-     byte exit = 0;
-     do {
-         sfxAntenna.hasSfxAnswer();
-         exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
-         delay(100);
-     } while(!exit);
-   
-    int baud=0;
-    if ((sfxAntenna.getSfxError() == SME_SFX_OK)){
-        return (answer.payload[5]);
-    }    
-    
-    return 0xff;
-}    
+        char send[8];
+        
+        memcpy(send,SFX_CFG_WAKE_ADDR,6);
+        send[6]=SIGFOX_END_READ;
+        sfxSendConf(send, 7);
+        
+        byte exit = 0;
+        do {
+            sfxAntenna.hasSfxAnswer();
+            exit = ((sfxAntenna.getSfxError() == SME_SFX_KO) || (sfxAntenna.getSfxError() == SME_SFX_OK));
+            delay(100);
+        } while(!exit);
+        
+        int baud=0;
+        if ((sfxAntenna.getSfxError() == SME_SFX_OK)){
+            sleepMode = answer.payload[5];
+        }
+    }
+    return sleepMode;
+}   
     
      
      
 const byte*  SmeSFX::readSwVersion(void) {
     
+    // the SFX chip must be in configuration mode
+    if (sfxAntenna.getSfxMode() == sfxDataMode) {
+        return (const byte*)"";
+    }
+        
     // if it already loaded return it immediately
     if (this->swVer[0] ==0) {
         
         // get the S/N
         byte exit = 0;
-        // if is not in configuration Mode move it
-        if (sfxMode != sfxConfigurationMode) {
-            setSfxConfigurationMode();
-        }
 
         sfxSendConf(FW_SW_VERSION, sizeof(FW_SW_VERSION)-1);
         answer.swVersionRead=1;
@@ -473,7 +509,6 @@ const byte*  SmeSFX::readSwVersion(void) {
                 
         memcpy(this->swVer, getLastReceivedMessage(), SW_VERSION);
     }
-
 
     return this->swVer;
 }
@@ -506,11 +541,16 @@ const byte*  SmeSFX::readSN(void) {
     return this->sn;
 }
 
-void SmeSFX::enterBtl(void) {
-    //sfxSendConf(GET_SN, GET_SN_LEN); // move in Bootloader mode
-    
-    sfxSendConf(FW_BOOTLOADER, sizeof(FW_BOOTLOADER)-1); // move in Bootloader mode
-    sfxMode = sfxEnterBtlMode;
+void SmeSFX::enterBtl(bool recovery) {
+    // if the system is not in recovery pahse, need to move in BTL mode
+    // otherwise it is already in the requested situation
+    if (!recovery) {
+        // move in Boot loader mode
+        sfxSendConf(FW_BOOTLOADER, sizeof(FW_BOOTLOADER)-1); 
+        sfxMode = sfxEnterBtlMode;
+    } else {
+        sfxMode = sfxBtlMode;
+    }
 }
 
 void SmeSFX::sendSFXMsg(const char *buffer, size_t size) {    
