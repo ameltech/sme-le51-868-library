@@ -27,6 +27,16 @@ sfxSendConf	   KEYWORD2
 sfxSendKeep	   KEYWORD2
 hasSfxAnswer	   KEYWORD2
 getSfxMode	   KEYWORD2
+sfxSendBtlPage	   KEYWORD2
+setSfxSleepMode	   KEYWORD2
+getSfxSleepMode	   KEYWORD2
+setSfxFactoryReset	   KEYWORD2
+readSwVersion	   KEYWORD2
+readSN	   KEYWORD2
+enterBtl	   KEYWORD2
+sfxSendBtlPage	   KEYWORD2
+getBaudRate	   KEYWORD2
+setBaudRate	   KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
