@@ -1,9 +1,14 @@
 /*
-SmeIoT Library - FwUpgrade
+SmeIoT Library - PowerSave
 
-This Sketch update the Telit Chip to the GP.S03.02.00-B002GP.B00.01.0C version.
-At the end the Telit Chip is upgraded to the newest version and its internal Baudrate
-change to 115200
+This Sketch update Shows how to put the Telit chip in powerSave mode.
+This will reduce the power consumption of the unit.
+
+First need to configure the Telit Chip in a specific power save mode.
+    This operation could be just once, it is stored in the internal Telit flash.
+
+When configured in SFX_HW_WAKE the specific wakeup pin need to be drive, and to do this there is
+    the specific api of the core
 
 created 27 Nov 2015
 by Mik (smkk@amel-tech.com)
