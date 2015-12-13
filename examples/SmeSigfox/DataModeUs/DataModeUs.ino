@@ -16,7 +16,7 @@
    This example is in the public domain
    https://github.com/ameltech
    
-   Telit le51-868-s mor einformatioin available here:
+   Telit le51-868-s more information available here:
    http://www.telit.com/products/product-service-selector/product-service-selector/show/product/le51-868-s/
  */
 
