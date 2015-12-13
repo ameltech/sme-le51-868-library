@@ -79,7 +79,8 @@ typedef enum {
 	sfxEnterDataMode,
     sfxEnterBtlMode,
     sfxBtlMode,
-	sfxDataMode
+	sfxDataMode,
+    sfxReceiveMode
 } sigFoxModeE;
 
 // considering the max payload that could be ERROR in Conf mode or S/N in BTL Mode
@@ -106,11 +107,12 @@ typedef struct {
 	byte sequenceNumber; //0x1 to 0xff
 	byte payload[SFX_ANSWER_LEN];
 	byte crc[2];	     // two byte of CRC
-    uint8_t swVersionRead;
+    uint8_t numberOfCR;
 }sigFoxRxMessage;
 
 
-class SmeSFX{
+class SmeSFX{ 
+    
 public:
     SmeSFX();
     virtual ~SmeSFX(){};
@@ -136,6 +138,8 @@ private:
     byte       composeSfxConfigurationAnswer(char data);
     byte       composeSfxBtlAnswer(char data);
     byte       composeSfxDataAnswer(char data);
+    byte       composeAckAnswer(char data);
+
     sfxRxFSME  crcCheck(void);
     byte       insertCRC(char *crcPos, const char *payLoad, byte msgType, byte seqNumber, byte payloadLen); 
     word       calculateCRC(byte payloadLen, byte msgType, byte seqNumber, const char *payload);
@@ -234,7 +238,16 @@ public:
      */
     byte sfxSendData(const char payload[], byte payloadLen);
 
-
+    /*
+     * \brief The function sends a message over the SFX network and wait for an Answer
+     *        The Asnwer shall be configured on the SFX BackEnd
+     *
+     * \param [in] <payload>    {the user data want to send on the SigFox network}
+     * \param [in] <payloadLen> {the length in bytes of the user data}
+     * \param [in] <ack>        {if the user want the ack}
+     */
+    byte sfxSendDataAck(const char payload[], byte payloadLen, bool ack);
+    
     /*
      * \brief The function sends the configuration message to SFX
      *

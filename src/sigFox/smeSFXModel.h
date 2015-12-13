@@ -54,6 +54,11 @@ radio link.
 */
 #define FW_BOOTLOADER		"ATBL"
 
+
+#define SFX_DATA_ACK "AT$SF"
+#define WITH_ACK      ",1"
+#define WITH_NO_ACK   ",0"
+#define SFX_DOWNLINK_PAYLOAD 7 //eg: OK/r+RX=3132333435363738/r+RX END/r
 /*
 Modem’s firmware version
 ‘AT/V’ command displays the modem’s firmware version as follows:
@@ -207,6 +212,8 @@ typedef enum
 
 #define SFX_MAX_PAYLOAD 0xff
 
+#define ACK_TIMEOUT_20SEC 20000 
+#define SFX_CONFIGURATION_TIMEOUT_1SEC 1000
 
 #endif /* SME_MODEL_SIGFOX_H_ */
 
