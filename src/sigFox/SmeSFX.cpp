@@ -44,7 +44,7 @@ void SmeSFX::setSfxDataMode(void) {
 
 bool SmeSFX::hasSfxAnswer(void) {
     if (readSfxAnswer()) {
-        return (SME_SFX_OK==getSfxError());
+        return ((SME_SFX_OK==getSfxError()) || (SME_SFX_KO==getSfxError())); // return in case of OK or ERROR
     }
     return false;
 }
