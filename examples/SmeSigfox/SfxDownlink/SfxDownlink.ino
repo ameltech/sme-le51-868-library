@@ -57,11 +57,13 @@ void loop() {
             (const char*)sfxAntenna.getLastReceivedMessage();
             ledBlueLight(LOW);  
             ledGreenLight(HIGH);
+            sfxAntenna.setSfxDataMode(); // move in Data Mode if need
             debounce = false;
         }
         else {
             ledBlueLight(LOW);
             ledRedLight(HIGH);
+            sfxAntenna.setSfxDataMode(); // move in Data Mode if need
             debounce = false;
         }
     }
