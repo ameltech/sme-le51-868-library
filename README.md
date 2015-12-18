@@ -12,7 +12,7 @@ This component use an internal USART to communicate, no extra pin are required.
 It was principally designed to work with the SmartEverything board, but could
 be easily adapt and use on every Arduino and Arduino Certified boards.
 
-Written by Mik <smkk@amel-tech.com>.  
+Written by Mik <smkk@axelelettronica.it>.  
 
 ## Repository Contents
 ---
