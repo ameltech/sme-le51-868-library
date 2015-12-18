@@ -11,7 +11,7 @@
     ligth off at the positive answer from the component.
 
     created 05 May 2015
-    by Mik (smkk@amel-tech.com)
+    by Mik (smkk@axelelettronica.it)
 
    This example is in the public domain
    https://github.com/ameltech

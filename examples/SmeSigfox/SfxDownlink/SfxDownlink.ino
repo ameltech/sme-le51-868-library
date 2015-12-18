@@ -13,7 +13,7 @@ GREEN : Ack Message received
 RED:    No Ack Message received
 
 created 13 Dec 2015
-by Mik (smkk@amel-tech.com)
+by Mik (smkk@axelelettronica.it)
 
 This example is in the public domain
 https://github.com/ameltech

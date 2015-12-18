@@ -11,7 +11,7 @@ When configured in SFX_HW_WAKE the specific wakeup pin need to be drive, and to 
     the specific api of the core
 
 created 27 Nov 2015
-by Mik (smkk@amel-tech.com)
+by Mik (smkk@axelelettronica.it)
 
 This example is in the public domain
 https://github.com/ameltech

@@ -11,7 +11,7 @@
    sfxAntenna.setBaudRate(<baudRate>); API, for this example 115200
 
     created 27 Nov 2015
-    by Mik (smkk@amel-tech.com)
+    by Mik (smkk@axelelettronica.it)
 
    This example is in the public domain
    https://github.com/ameltech
