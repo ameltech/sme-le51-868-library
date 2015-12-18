@@ -1,5 +1,5 @@
-SmartEverything Telit LE51-868  Sigfox complete module
-=============================================================
+# SmartEverything Telit LE51-868  Sigfox complete module
+---
 This is a library for the Telit LE51-868 component.
 A Short Range to Long Range module designed to cover the 863-870 MHz band
 working with the Telit Proprietary protocol and acting as a SIGFOX gateway.
@@ -14,21 +14,33 @@ be easily adapt and use on every Arduino and Arduino Certified boards.
 
 Written by Mik <smkk@amel-tech.com>.  
 
-Repository Contents
--------------------
-
+## Repository Contents
+---
 * **/examples** - Example sketches for the library (.ino). Run these from the Arduino IDE. 
 * **/src** - Source files for the library (.cpp, .h).
 * **library.properties** - General library properties for the Arduino package manager.
 
-Documentation
---------------
+## Releases
+---
+#### v1.0.0 First Release
 
+#### v2.0.0 Second Release 18-Dec-2015
+* Fixed Issue:<br>
+    The problem that a message with a 0x00(zero hex) is sent trunked<br>.
+* New Features:<br>
+    Fw Upgrade from a Sketch<br>
+    Change internal UART baudRate<br>
+    Added power Save functionality (need v1.1.0 of SmartEverything core)<br>
+    Added downLink functionality, the SmartEverything is now able to read the SigFox callback<br>
+
+
+## Documentation
+---
 * **[Installing an Arduino Library Guide](http://www.arduino.cc/en/Guide/Libraries#toc3)** - How to install a SmartEverything library on the Arduino IDE using the Library Manager
 
 
-License Information
--------------------
+## License Information
+---
 
 Copyright (c) Amel Technology. All right reserved.
 
@@ -49,10 +61,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 
 
-About SIGFOX
-===============
-In a few words
---------------
+# About SIGFOX
+---
+## In a few words
+---
 **SIGFOX is an operated telecommunication network, dedicated to the Internet of Things.**
 
 It is an operated network, meaning you do not have to handle any installation or maintenance operations.
@@ -67,8 +79,8 @@ The SIGFOX protocol is designed for small messages sent every now and then. It i
 
 Its focus on energy efficiency allows you to build connected devices able to last years on a standard battery.
 
-Technology
-----------
+## Technology
+---
 The SIGFOX network operates on sub-GHz frequencies, on ISM bands : 868MHz in Europe/ETSI & 915MHz in the US/FCC.
 
 SIGFOX uses an Ultra-Narrow Band (UNB) modulation, which is key to our ability to provide a scalable & high-capacity network.
@@ -80,11 +92,15 @@ The signal is detected by the closer base stations, decoded & forwarded to the n
 Deduplication & other protocol operations are handed by the network itself.
 Message is then forwarded to your own application, and accessible using SIGFOX's API. ()
 
-SIGFOX Specifics
---------------
-**In a few words**
+## SIGFOX Specifics
+---
+**upLink**
 - Up to 12 bytes per message
 - Up to 140 messages per day
+
+**downLink**
+- Up to 8 bytes per message
+- Up to 4 messages per day
 
 **Message size**
 You can send up to 12 bytes (96 bits) per message. 
@@ -96,6 +112,7 @@ The european regulation on the 868MHz band enforce a transmission duty cycle of 
 A unique device is not allowed to emit more than 1% of the time each hour. 
 As emission of a message can take up to ~6 seconds, this allows up to 6 messages per hour
 
-**SIGFOX for Makers**
-
+## SIGFOX for Makers
+---
 [SIGFOX Makers Home Page] (http://makers.sigfox.com/)
+
