@@ -77,7 +77,6 @@ void setup() {
 	SerialUSB.println("The SFX chip will be move in powersafe after every msg sent.");
 	SerialUSB.println("To test the PowerSafe type:");
 	SerialUSB.println("1) wake  (the message will be  sent)");
-	SerialUSB.println("0) don't wake (the message will NOT sent)");
 }
 
 unsigned long time, newTime;
@@ -107,12 +106,6 @@ void loop() {
 			}  
 			exit = 1;
 			break;
-
-			//do nothing.... do not wake SFX
-		case '0':
-			exit = 1;
-			break;
-
 		default:
 			break;
 		}
