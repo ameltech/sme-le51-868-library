@@ -35,7 +35,7 @@ bool debounce;
 void setup() {
     sfxAntenna.begin();
     debounce =false;
-    digitalWrite(PIN_LED_GREEN, HIGH);
+    digitalWrite(PIN_LED_GREEN, LOW);
    
 }
 
