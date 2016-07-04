@@ -20,49 +20,54 @@ https://github.com/ameltech
 
 Telit le51-868-s more information available here:
 http://www.telit.com/products/product-service-selector/product-service-selector/show/product/le51-868-s/
-*/
+ */
 
 #include <SmeSFX.h>
 #include <Arduino.h>
 
 // max length of message consider the register name + register Value + the symbol for write/read command
 char sfcCommandMsg[20];
-#define SFX_FRAME "333332"
+#define SFX_FRAME "333336"
 
 bool debounce;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
+    SerialUSB.begin(115200);
     sfxAntenna.begin();
     debounce =false;
-    digitalWrite(PIN_LED_GREEN, HIGH);
-   
+
+    ledYellowTwoLight(LOW);
+    ledYellowOneLight(LOW);
+    
+    while (!SerialUSB) {
+        ;
+    }
+    
+
+
+    sfxAntenna.sfxSendDataAck(SFX_FRAME, strlen(SFX_FRAME), true); // send the data;
+    SerialUSB.println("Message sent over the air");
 }
 
 // the loop function runs over and over again forever
-void loop() {
-
-    // forward any command received by the USB port to the SFX chip
-    if (isButtonOnePressed() && !debounce) {
-         sfxAntenna.sfxSendDataAck(SFX_FRAME, strlen(SFX_FRAME), true); // send the data;
-        ledBlueLight(HIGH);   
-        ledRedLight(LOW);
-        ledGreenLight(LOW);     
-        debounce = true;
-    }
+void loop() {    
 
     // if message has been received correctly print it out
     if (sfxAntenna.hasSfxAnswer()) {
         if (sfxAntenna.getSfxError() == SME_SFX_OK) {
-            (const char*)sfxAntenna.getLastReceivedMessage();
-            ledBlueLight(LOW);  
-            ledGreenLight(HIGH);
+            ledYellowOneLight(HIGH);
+            ledYellowTwoLight(HIGH);
+
+            SerialUSB.println("Acknowledge received");
+            SerialUSB.print("Message = ");
+            SerialUSB.println((const char*)sfxAntenna.getLastReceivedMessage());
+
             sfxAntenna.setSfxDataMode(); // move in Data Mode if need
             debounce = false;
         }
         else {
-            ledBlueLight(LOW);
-            ledRedLight(HIGH);
+            SerialUSB.println("Acknowledge not received");
             sfxAntenna.setSfxDataMode(); // move in Data Mode if need
             debounce = false;
         }

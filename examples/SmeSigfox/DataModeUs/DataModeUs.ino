@@ -15,7 +15,7 @@
 
    This example is in the public domain
    https://github.com/ameltech
-   
+
    Telit le51-868-s more information available here:
    http://www.telit.com/products/product-service-selector/product-service-selector/show/product/le51-868-s/
  */
@@ -32,7 +32,7 @@ char helloMsg[5]= {'H','e', 'l', 'l', 'o'};
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    
+
     SerialUSB.begin(115200);
     sfxAntenna.begin();
     int initFinish=1;
@@ -57,7 +57,9 @@ void setup() {
                 break;
 
             case 3:
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
                 ledGreenLight(HIGH);
+#endif
                 initFinish++; // exit
                 break;
             }
@@ -83,18 +85,24 @@ void loop() {
                 break;
 
             case SFX_DATA_ACK_PROCESSING:
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
                 ledGreenLight(LOW);
+#endif                
                 SerialUSB.print(".");
                 break;
 
             case SFX_DATA_ACK_OK:
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
                 ledGreenLight(HIGH);
+#endif                
                 SerialUSB.println(' ');
                 SerialUSB.println("Answer OK :) :) :) :)");
                 break;
 
             case SFX_DATA_ACK_KO:
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
                 ledRedLight(HIGH);
+#endif
                 SerialUSB.println(' ');
                 SerialUSB.println("Answer KO :( :( :( :(");
                 break;

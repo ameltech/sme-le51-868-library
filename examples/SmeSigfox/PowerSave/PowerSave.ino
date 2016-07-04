@@ -24,7 +24,7 @@ https://github.com/ameltech
 
 Telit le51-868-s more information available here:
 http://www.telit.com/products/product-service-selector/product-service-selector/show/product/le51-868-s/
-*/
+ */
 
 #include <SmeSFX.h>
 #include <Arduino.h>
@@ -37,10 +37,10 @@ static void printStatus(void){
     SerialUSB.print("Now the system is in ");
     if (powerSaveStatus == SFX_HW_WAKE) {
         SerialUSB.println("Hardware power Save.");
-        SerialUSB.println("\nThe SFX chip will be move in powersafe after every msg sent.");
+        SerialUSB.println("\nThe SFX chip will be move in power save after every msg sent.");
         SerialUSB.println("To test the PowerSafe type:");
 
-        } else if (powerSaveStatus == SFX_NO_WAKE) {
+    } else if (powerSaveStatus == SFX_NO_WAKE) {
         SerialUSB.println("NO power Save.");
         SerialUSB.println("\nBoth the selection will send msg.");
         SerialUSB.println("To test the PowerSafe type:");
@@ -69,7 +69,7 @@ static void setPowerSaveMode(void){
         uint8_t answerReady = sfxAntenna.hasSfxAnswer();
         if (answerReady) {
             switch (initFinish) {
-                case 1:
+            case 1:
                 // set the PowerSafe mode
                 sfxAntenna.setSfxSleepMode(powerSaveStatus);
                 sfxAntenna.setSfxDataMode();
@@ -118,8 +118,8 @@ void loop() {
         }
         switch (wake) {
 
-            // wake SFX
-            case '1':
+        // wake SFX
+        case '1':
             SerialUSB.println("WakeUp SFX");
             // not need to call this because the status variable,
             // but useful in the example to shows that exists.
@@ -131,31 +131,32 @@ void loop() {
             break;
 
             //do nothing.... do not wake SFX
-            case '0':
+        case '0':
             exit = 1;
             break;
 
-            case '2':
+        case '2':
             exit=1;
             if (powerSaveStatus == SFX_HW_WAKE) {
                 sfxWakeup(); // need to wakeup to send configuration
                 powerSaveStatus = SFX_NO_WAKE;
-                } else if (powerSaveStatus == SFX_NO_WAKE) {
+            } else if (powerSaveStatus == SFX_NO_WAKE) {
                 powerSaveStatus = SFX_HW_WAKE;
             }
             setPowerSaveMode();
             return; // do not send msg at this time
             break;
-            
-            default:
+
+        default:
             break;
         }
     } while (!exit);
 
-
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
     ledGreenLight(LOW);
     ledRedLight(LOW);
     ledBlueLight(LOW);
+#endif
 
     // send Hello on the air
     SerialUSB.println("Sending Hello over the air");
@@ -172,23 +173,29 @@ void loop() {
             if (sfxAntenna.getSfxMode() == sfxDataMode) {
 
                 switch (sfxAntenna.sfxDataAcknoledge()) {
-                    case SFX_DATA_ACK_START:
+                case SFX_DATA_ACK_START:
                     SerialUSB.println("Waiting Answer");
                     break;
 
-                    case SFX_DATA_ACK_PROCESSING:
+                case SFX_DATA_ACK_PROCESSING:
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
                     ledGreenLight(LOW);
+#endif
                     SerialUSB.print(".");
                     break;
 
-                    case SFX_DATA_ACK_OK:
+                case SFX_DATA_ACK_OK:
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
                     ledGreenLight(HIGH);
+#endif
                     SerialUSB.println("\nAnswer OK :) :) :) :)\n");
                     exit = 1;
                     break;
 
-                    case SFX_DATA_ACK_KO:
+                case SFX_DATA_ACK_KO:
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
                     ledRedLight(HIGH);
+#endif
                     SerialUSB.println("\nAnswer KO :( :( :( :(\n");
                     exit = 1;
                     break;
@@ -208,9 +215,11 @@ void loop() {
 
     // if timeout is expired, show with the blu led on
     if (exit == 2) {
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
         ledGreenLight(LOW);
         ledRedLight(LOW);
         ledBlueLight(HIGH);
+#endif
         SerialUSB.println("TimeOUT !!:( :( :( :(\n");
     }
 }

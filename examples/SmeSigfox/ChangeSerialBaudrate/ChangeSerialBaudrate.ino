@@ -26,36 +26,54 @@
 // the setup function runs once when you press reset or power the board
 void setup() {
 
-  SerialUSB.begin(115200);
-  sfxAntenna.begin();
+    SerialUSB.begin(115200);
+    sfxAntenna.begin();
 
+    while (!SerialUSB) {
+        ;
+    }
 
-  SerialUSB.println("\n\nSFX in Command mode");
-  sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
+    SerialUSB.println("\n\nSFX in Command mode");
+    sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
 
 
 }
 
 // the loop function runs over and over again forever
 void loop() {
-  uint8_t diff;
-  uint8_t answerReady = sfxAntenna.hasSfxAnswer();
+    uint8_t diff;
+    uint8_t answerReady = sfxAntenna.hasSfxAnswer();
 
-  if (answerReady) {
+    if (answerReady) {
 
-    if (sfxAntenna.getBaudRate() != B115200) {
-      sfxAntenna.setBaudRate(B115200);
-      delay(1000);
-      do {
-        ledGreenLight(HIGH);
-        delay(1000);
-        ledGreenLight(LOW);
-      } while (1);
+        if (sfxAntenna.getBaudRate() != B115200) {
+            SerialUSB.println("\nChange BaudRate.....");
+            sfxAntenna.setBaudRate(B115200);
+
+            delay(1000);
+
+            SerialUSB.println("\nChanged !!");
+
+            do {
+                SerialUSB.println("\n BaudRate Identical, it has not been changed.");
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+                ledGreenLight(HIGH);
+#endif;
+                delay(1000);
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+                ledGreenLight(LOW);
+#endif
+            } while (1);
+        }
+
+        do {
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+            ledBlueLight(HIGH);
+#endif
+            delay(1000);
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+            ledBlueLight(HIGH);
+#endif
+        } while (1);
     }
-    do {
-      ledBlueLight(HIGH);
-      delay(1000);
-      ledBlueLight(LOW);
-    } while (1);
-  }
 }
