@@ -22,17 +22,19 @@ Written by Mik <smkk@axelelettronica.it>.
 
 ## Releases
 ---
-#### v2.1.0 Third Release 18-Dec-2015
-* Enachement: 
+#### v2.1.0 Third Release 18-Jul-2016
+* Enachement:<br>
     Unlocked the library from the SME specific UART. The User can change the serial at the begin() method.
+
 #### v2.0.0 Second Release 18-Dec-2015
-* Fixed Issue: 
+* Fixed Issue:<br>
     The problem that a message with a 0x00(zero hex) is sent trunked. 
-* New Features: 
+* New Features:<BR> 
     Fw Upgrade from a Sketch. 
     Change internal UART baudRate. 
     Added power Save functionality (need v1.1.0 of SmartEverything core). 
     Added downLink functionality, the SmartEverything is now able to read the SigFox callback<br>
+
 #### v1.0.0 First Release
 
 
