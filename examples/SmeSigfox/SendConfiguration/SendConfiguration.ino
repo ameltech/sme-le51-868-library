@@ -3,8 +3,8 @@
 
     Demostrate how move in configuration mode for the Telit Sigfox component.
     Any command passed trougth the USB console are forwarded to the SigFox Component.
-	
-	The command should finish with the '.' character.
+
+    The command should finish with the '.' character.
 
     The Led13 shows the command status
     ON : command sent
@@ -15,7 +15,7 @@
 
     This example is in the public domain
     https://github.com/ameltech
-    
+
     Telit le51-868-s more information available here:
     http://www.telit.com/products/product-service-selector/product-service-selector/show/product/le51-868-s/
  */
@@ -53,7 +53,9 @@ void composeSendSFXCommand(void){
         if (COMMAND_END != data) {
             sfcCommandMsg[msgPtr++] = data;
         }else  {
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
             ledGreenLight(HIGH);
+#endif
             sfxAntenna.sfxSendConf(sfcCommandMsg, msgPtr); // send the data
             msgPtr=0;
         }
@@ -64,13 +66,12 @@ void composeSendSFXCommand(void){
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    
+
     inConfiguration = false;
 
     SerialUSB.begin(115200);
     sfxAntenna.begin();
 
-    digitalWrite(PIN_LED_GREEN, HIGH);
     sfxAntenna.setSfxConfigurationMode(); // enter in configuration Mode
 }
 
@@ -80,7 +81,9 @@ void loop() {
     if (!inConfiguration) {
         uint8_t answerReady = sfxAntenna.hasSfxAnswer();
         if (answerReady){
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
             ledGreenLight(HIGH);
+#endif
             SerialUSB.println("SFX in Command mode");
             inConfiguration = true;
             msgPtr=0;
@@ -88,7 +91,9 @@ void loop() {
     } else {
         // forward any command received by the USB port to the SFX chip
         if (SerialUSB.available()) {
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
             ledGreenLight(LOW);
+#endif
             composeSendSFXCommand();
         }
 
@@ -97,7 +102,9 @@ void loop() {
             if (sfxAntenna.getSfxError() == SME_SFX_OK) {
                 SerialUSB.println("Command accepted !!");
                 SerialUSB.println((const char*)sfxAntenna.getLastReceivedMessage());
-                ledGreenLight(HIGH);      
+#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+                ledGreenLight(HIGH);
+#endif      
             }
         }
     }

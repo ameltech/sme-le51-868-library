@@ -25,18 +25,19 @@ SmeSFX::SmeSFX(void) {
     sleepMode = SFX_ERROR_WAKE;
 }
 
-void SmeSFX::begin (unsigned long baudRate){
-    SigFox.begin(baudRate);
+void SmeSFX::begin (unsigned long baudRate, Uart *_antenna) {
+    this->antenna = _antenna;
+    antenna->begin(baudRate);
 }
 
 void SmeSFX::setSfxConfigurationMode(void) {
-    SigFox.write(ENTER_CONF_MODE, sizeof(ENTER_CONF_MODE)-1);
+    antenna->write(ENTER_CONF_MODE, sizeof(ENTER_CONF_MODE)-1);
     answer.payloadPtr=0;
     sfxMode = sfxConfigurationMode;
 }
 
 void SmeSFX::setSfxDataMode(void) {
-    SigFox.print(ENTER_DATA_MODE);
+    antenna->print(ENTER_DATA_MODE);
     answer.payloadPtr=0;
     sfxMode = sfxEnterDataMode;
 }
@@ -51,9 +52,9 @@ bool SmeSFX::hasSfxAnswer(void) {
 // PRIVATE FUNCTIONS
 const byte SmeSFX::readSfxAnswer(void)
 {
-    while (SigFox.available()) {
+    while (antenna->available()) {
         // get the new byte:
-        char inChar = (char)SigFox.read();
+        char inChar = (char)antenna->read();
         
         switch(sfxMode) {
             case sfxConfigurationMode:
@@ -171,18 +172,21 @@ byte  SmeSFX::sfxSendDataAck(const char payload[], byte payloadLen, bool ack) {
     message[strlen(SFX_DATA_ACK)]= SIGFOX_EQUAL_CHAR;    // write '='
     memcpy(&message[strlen(SFX_DATA_ACK)+1], payload, payloadLen); //write payload
     
-    if (ack)
+    if (ack) {
         memcpy(&message[strlen(SFX_DATA_ACK)+1+payloadLen], WITH_ACK, strlen(WITH_ACK));
-    else 
+                // the OK message need 3 /r
+                // The ERROR just one
+                answer.numberOfCR=2; // suppose everything goes well
+    } else {
         memcpy(&message[strlen(SFX_DATA_ACK)+1+payloadLen], WITH_NO_ACK, strlen(WITH_NO_ACK));
+        // the OK message need 1 /r
+        answer.numberOfCR=1; // suppose everything goes well
+    }        
+    
     timeOut = (millis()-startTime);
     // at the end store the /r
     message[strlen(SFX_DATA_ACK)+1+payloadLen+2]= SIGFOX_END_MESSAGE;
-    sfxMode = sfxReceiveMode;
-    
-    // the OK message need 3 /r 
-    // The ERROR just one
-    answer.numberOfCR=2; // suppose everything goes well
+    sfxMode = sfxReceiveMode;        
     
     sendSFXMsg(message, strlen(message));
     timeOut = (millis()-startTime);
@@ -418,11 +422,21 @@ byte SmeSFX::composeAckAnswer(char data) {
     
     if (data == SIGFOX_END_MESSAGE) {
         if (answer.numberOfCR) {
-            // at the first /r check if there is an ERROR and exit, because is the only one /r
-            if (SGF_CONF_ERROR == answer.payload[0]) {
+            // at the first /r check if there is an ERROR and exit
+            if ((SGF_CONF_ERROR == answer.payload[0]) &&
+                (answer.payloadPtr == 6)){
                 sfxError = SME_SFX_KO;
                 return sfxError;
             }
+            
+            // check if there is an OK and exit (because it has not been request the ACK
+            if ((SGF_CONF_OK == answer.payload[0]) && 
+                (answer.payloadPtr == 3)) {
+                sfxError = SME_SFX_OK;                
+                return sfxError;
+            }
+            
+            // in this case the answer is because there is an ACK
             answer.numberOfCR--;
         } else {
             // msg OK just consider the payload of downlink
@@ -638,6 +652,6 @@ void SmeSFX::enterBtl(bool recovery) {
 
 void SmeSFX::sendSFXMsg(const char *buffer, size_t size) {    
     sfxError= SME_OK; // reset the answer FSM
-    SigFox.write(buffer, size);
+    antenna->write(buffer, size);
 }
 SmeSFX  sfxAntenna;

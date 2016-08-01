@@ -59,27 +59,27 @@ Tailer 1 0x5A
 
 Example: dataMsg  "HELLO"  = A5 05 01 25 48 65 6C 6C 6F 1F 02 5A
 
-*/
+ */
 
 typedef enum {
-	headerRec,
-	lenRec,
-	typeRec,
-	sequenceRec,
-	payloadRec,
-	crcRec,
-	tailerRec,
-	nullState // used when gotcha an error
+    headerRec,
+    lenRec,
+    typeRec,
+    sequenceRec,
+    payloadRec,
+    crcRec,
+    tailerRec,
+    nullState // used when gotcha an error
 } sfxRxFSME;
 
 
 
 typedef enum {
-	sfxConfigurationMode,
-	sfxEnterDataMode,
+    sfxConfigurationMode,
+    sfxEnterDataMode,
     sfxEnterBtlMode,
     sfxBtlMode,
-	sfxDataMode,
+    sfxDataMode,
     sfxReceiveMode
 } sigFoxModeE;
 
@@ -98,27 +98,34 @@ typedef enum {
 
 /*
 Structure that define the Telit Answer msg
- 
-*/
+
+ */
 typedef struct {
-	byte payloadPtr;	 // pointer to the payload  messageg
-	byte length;		 // length of the payload message
-	byte type;			 // type of the message with the answer bit set (0x10)
-	byte sequenceNumber; //0x1 to 0xff
-	byte payload[SFX_ANSWER_LEN];
-	byte crc[2];	     // two byte of CRC
+    byte payloadPtr;	 // pointer to the payload  messageg
+    byte length;		 // length of the payload message
+    byte type;			 // type of the message with the answer bit set (0x10)
+    byte sequenceNumber; //0x1 to 0xff
+    byte payload[SFX_ANSWER_LEN];
+    byte crc[2];	     // two byte of CRC
     uint8_t numberOfCR;
 }sigFoxRxMessage;
 
 
 class SmeSFX{ 
-    
+
 public:
     SmeSFX();
     virtual ~SmeSFX(){};
-    void begin (unsigned long baudRate=19200);
+#ifdef ASME3_REVISION
+    void begin (unsigned long baudRate=19200, Uart *_antenna=&SigFox);
+#elif ARDUINO_SAMD_SMARTEVERYTHING
+    void begin (unsigned long baudRate=19200, Uart *_antenna=&SigFox); 
+#else
+    void begin (unsigned long baudRate=19200, Uart *_antenna=&Serial1);
+#endif
 
 private:
+    Uart *antenna;
     byte            sfxSequenceNumber;
     sigFoxModeE     sfxMode;
     char            message[SFX_MAX_PAYLOAD+7]; // the max payload plus header,tailer CRC and other bytes
@@ -152,69 +159,69 @@ private:
     // library API
 public:
 
-	/*
+    /*
      * \brief Set the internal Uart BaudRate
      *
-	 * \param SfxBaudE the required BaudRate
+     * \param SfxBaudE the required BaudRate
      * 
-	 * \return true  Telit change the BaudRate
-	 *
+     * \return true  Telit change the BaudRate
+     *
      */
-	bool  setBaudRate(SfxBaudE baud);
-    
-    	/*
+    bool  setBaudRate(SfxBaudE baud);
+
+    /*
      * \brief Get the internal Uart BaudRate
      *
-	 * \param void
+     * \param void
      * 
-	 * \return the current Baudrate
-	 *
+     * \return the current Baudrate
+     *
      */
-	SfxBaudE  getBaudRate(void);
-    
-	/*
+    SfxBaudE  getBaudRate(void);
+
+    /*
      * \brief Return the SW of the Antenna
      *
-	 * \param void
+     * \param void
      * 
-	 * \return the SW
-	 *
+     * \return the SW
+     *
      */
-	const byte*  readSwVersion(void);
-	
-    
-	/*
+    const byte*  readSwVersion(void);
+
+
+    /*
      * \brief Return the S/N of the Antenna
      *
-	 * \param void
+     * \param void
      * 
-	 * \return <serialNum> {The String of the Serial Number}
-	 *
+     * \return <serialNum> {The String of the Serial Number}
+     *
      */
-	const byte*  readSN(void);
-    
+    const byte*  readSN(void);
+
     /*
      * \brief Move the Chip in Bootloader mode
      *
-	 * \param void
+     * \param void
      * 
-	 * \return void
-	 *
+     * \return void
+     *
      */
-	void  enterBtl(bool recovery);
-    
-	/*
+    void  enterBtl(bool recovery);
+
+    /*
      * \brief Return last message received from the Antenna.
-	 *			message could be from the network or from the configuration
-	 *			depending of the result of getSfxMode()
+     *			message could be from the network or from the configuration
+     *			depending of the result of getSfxMode()
      *
      * \param bool if it is in recovery phase or normal state
-	 *  
-	 * \return the last 
-	 *
+     *
+     * \return the last
+     *
      */
     const byte* getLastReceivedMessage(void) { return answer.payload;};
-        
+
     byte      getSfxError() const { return sfxError;};
 
     /*
@@ -247,7 +254,7 @@ public:
      * \param [in] <ack>        {if the user want the ack}
      */
     byte sfxSendDataAck(const char payload[], byte payloadLen, bool ack);
-    
+
     /*
      * \brief The function sends the configuration message to SFX
      *
@@ -256,7 +263,7 @@ public:
      *
      */
     void sfxSendConf(const char confMsg[], byte confLen);
-    
+
     /*
      * \brief The function sends the a command for the boot loader
      *
@@ -265,7 +272,7 @@ public:
      *
      */
     void sfxSendBtlPage(const char btlCmdMsg[], uint16_t btlCmdMsgLen);
-    
+
     /*
      * \brief used to send the KEEP message
      *
@@ -302,36 +309,36 @@ public:
      *
      */
     uint8_t    sfxDataAcknoledge(void){return dataAck;}
-        
+
     /*
      * \brief configure the Power safe Mode for the SFX
-     
+
      * \param uint8_t the wake_up mode
      *
      * \return void
      *
      */
     void setSfxSleepMode(uint8_t wakeMode);
-    
+
     /*
      * \brief return the power safe mode type
-     
+
      * \param void
      *
      * \return uint8_t the type of power safe
      *
      */
-     uint8_t getSfxSleepMode(void);
-     
+    uint8_t getSfxSleepMode(void);
+
     /*
      * \brief Factory Reset of the Telit chip
-     
+
      * \param void
      *
      * \return void
      *
      */
-     void setSfxFactoryReset(void);
+    void setSfxFactoryReset(void);
 };
 
 // external variable used by the sketches
