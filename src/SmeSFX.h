@@ -117,7 +117,7 @@ public:
     SmeSFX();
     virtual ~SmeSFX(){};
 #ifdef ASME3_REVISION
-    void begin (unsigned long baudRate=19200, Uart *_antenna=&SigFox);
+    void begin (unsigned long baudRate=19200, Uart *_antenna=&iotAntenna);
 #elif ARDUINO_SAMD_SMARTEVERYTHING
     void begin (unsigned long baudRate=19200, Uart *_antenna=&SigFox); 
 #else
