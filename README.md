@@ -22,6 +22,10 @@ Written by Mik <smkk@axelelettronica.it>.
 
 ## Releases
 ---
+#### v2.1.1 Third Release 04-Jan-2017
+* Fixed Issue:<br>
+    Compatibility with Fox1
+
 #### v2.1.0 Third Release 18-Jul-2016
 * Enachement:<br>
     Unlocked the library from the SME specific UART. The User can change the serial at the begin() method.

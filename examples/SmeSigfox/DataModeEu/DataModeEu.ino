@@ -62,7 +62,7 @@ void loop() {
                 break;
 
             case SFX_DATA_ACK_OK:
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                 ledGreenLight(HIGH);
 #endif
                 SerialUSB.println(' ');
@@ -70,7 +70,7 @@ void loop() {
                 break;
 
             case SFX_DATA_ACK_KO:
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                 ledRedLight(HIGH);
 #endif
                 SerialUSB.println(' ');

@@ -53,7 +53,7 @@ void composeSendSFXCommand(void){
         if (COMMAND_END != data) {
             sfcCommandMsg[msgPtr++] = data;
         }else  {
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
             ledGreenLight(HIGH);
 #endif
             sfxAntenna.sfxSendConf(sfcCommandMsg, msgPtr); // send the data
@@ -81,7 +81,7 @@ void loop() {
     if (!inConfiguration) {
         uint8_t answerReady = sfxAntenna.hasSfxAnswer();
         if (answerReady){
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
             ledGreenLight(HIGH);
 #endif
             SerialUSB.println("SFX in Command mode");
@@ -91,7 +91,7 @@ void loop() {
     } else {
         // forward any command received by the USB port to the SFX chip
         if (SerialUSB.available()) {
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
             ledGreenLight(LOW);
 #endif
             composeSendSFXCommand();
@@ -102,7 +102,7 @@ void loop() {
             if (sfxAntenna.getSfxError() == SME_SFX_OK) {
                 SerialUSB.println("Command accepted !!");
                 SerialUSB.println((const char*)sfxAntenna.getLastReceivedMessage());
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                 ledGreenLight(HIGH);
 #endif      
             }

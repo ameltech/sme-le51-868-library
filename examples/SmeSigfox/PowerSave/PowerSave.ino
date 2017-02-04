@@ -152,7 +152,7 @@ void loop() {
         }
     } while (!exit);
 
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
     ledGreenLight(LOW);
     ledRedLight(LOW);
     ledBlueLight(LOW);
@@ -178,14 +178,14 @@ void loop() {
                     break;
 
                 case SFX_DATA_ACK_PROCESSING:
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                     ledGreenLight(LOW);
 #endif
                     SerialUSB.print(".");
                     break;
 
                 case SFX_DATA_ACK_OK:
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                     ledGreenLight(HIGH);
 #endif
                     SerialUSB.println("\nAnswer OK :) :) :) :)\n");
@@ -193,7 +193,7 @@ void loop() {
                     break;
 
                 case SFX_DATA_ACK_KO:
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                     ledRedLight(HIGH);
 #endif
                     SerialUSB.println("\nAnswer KO :( :( :( :(\n");
@@ -215,7 +215,7 @@ void loop() {
 
     // if timeout is expired, show with the blu led on
     if (exit == 2) {
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
         ledGreenLight(LOW);
         ledRedLight(LOW);
         ledBlueLight(HIGH);

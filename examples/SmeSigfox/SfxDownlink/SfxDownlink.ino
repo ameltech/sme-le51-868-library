@@ -20,6 +20,11 @@ https://github.com/ameltech
 
 Telit le51-868-s more information available here:
 http://www.telit.com/products/product-service-selector/product-service-selector/show/product/le51-868-s/
+
+
+ONLY VALID FROM TELIT VERSION GP.S03.02.00-B002GP.B00.01.0
+
+
  */
 
 #include <SmeSFX.h>

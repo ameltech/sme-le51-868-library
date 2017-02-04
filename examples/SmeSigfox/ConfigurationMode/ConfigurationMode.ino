@@ -45,12 +45,12 @@ void loop() {
         if (answerReady){
             SerialUSB.println("Entered in configuration Mode");
             inConfiguration = true;
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
             ledGreenLight(HIGH);
 #endif;
         }
     } else {
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
         ledGreenLight(LOW);
 #endif;
         delay(1000);

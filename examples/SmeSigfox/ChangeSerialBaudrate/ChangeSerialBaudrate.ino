@@ -56,22 +56,22 @@ void loop() {
 
             do {
                 SerialUSB.println("\n BaudRate Identical, it has not been changed.");
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                 ledGreenLight(HIGH);
 #endif;
                 delay(1000);
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
                 ledGreenLight(LOW);
 #endif
             } while (1);
         }
 
         do {
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
             ledBlueLight(HIGH);
 #endif
             delay(1000);
-#ifdef ARDUINO_SAMD_SMARTEVERYTHING
+#ifndef ASME3_REVISION
             ledBlueLight(HIGH);
 #endif
         } while (1);
